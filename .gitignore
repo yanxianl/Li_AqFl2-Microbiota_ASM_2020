@@ -1,0 +1,10 @@
+.Rproj.user
+.Rhistory
+.RData
+
+data/*/*
+!data/processed/*
+!data/reference/mock*
+!README.md
+!metadata.tsv
+

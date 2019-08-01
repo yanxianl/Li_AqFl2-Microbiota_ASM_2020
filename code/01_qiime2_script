@@ -1,0 +1,400 @@
+#======================================================================================================================
+# 16S metagenomic data anaylsis in QIIME2
+#======================================================================================================================
+# Activate miniconda3 to run QIIME2 
+source $HOME/miniconda3/bin/activate
+
+# Activate QIIME2-2019.7
+conda activate qiime2-2019.7
+
+#======================================================================================================================
+# Sequence denoising
+#======================================================================================================================
+# Import the demultiplexed fastq files
+qiime tools import \
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path data/raw/casava-18-paired-end-demultiplexed \
+  --input-format CasavaOneEightSingleLanePerSampleDirFmt \
+  --output-path data/qiime2/demux.qza
+
+# Summarize sequence data and visulaize reads quality
+qiime demux summarize \
+  --i-data data/qiime2/demux.qza \
+  --o-visualization data/qiime2/demux.qzv
+
+# Sequence quality control and feature table construction based on sequence quality
+qiime dada2 denoise-paired \
+  --i-demultiplexed-seqs data/qiime2/demux.qza \
+  --p-trim-left-f 20 \
+  --p-trim-left-r 18 \
+  --p-trunc-len-f 290 \
+  --p-trunc-len-r 248 \
+  --p-n-threads 16 \
+  --o-table data/qiime2/table.qza \
+  --o-representative-sequences data/qiime2/rep-seqs.qza \
+  --o-denoising-stats data/qiime2/stats.qza \
+  --verbose \
+
+# Quality check: number of sequences kept at each step of the dada2 pipeline
+qiime metadata tabulate \
+  --m-input-file data/qiime2/stats.qza \
+  --o-visualization data/qiime2/stats.qzv
+
+# Overview of raw feature-table
+qiime feature-table summarize \
+  --i-table data/qiime2/table.qza \
+  --m-sample-metadata-file data/metadata.tsv \
+  --o-visualization data/qiime2/table.qzv 
+
+#======================================================================================================================
+# Taxanomic assignment
+#======================================================================================================================
+# Import reference sequence and taxonomy to train the feature-classifier
+qiime tools import \
+  --type 'FeatureData[Sequence]' \
+  --input-path data/reference/silva_132_99_16S.fna \
+  --output-path data/qiime2/99-otus-silva132.qza
+
+qiime tools import \
+  --type 'FeatureData[Taxonomy]' \
+  --input-format HeaderlessTSVTaxonomyFormat \
+  --input-path data/reference/silva_132_consensus_taxonomy_l7.txt \
+  --output-path data/qiime2/ref-taxonomy-silva132.qza
+
+# Extract V1-2 reference reads
+qiime feature-classifier extract-reads \
+--i-sequences data/qiime2/99-otus-silva132.qza \
+--p-f-primer AGAGTTTGATCMTGGCTCAG \
+--p-r-primer GCWGCCWCCCGTAGGWGT \
+--o-reads data/qiime2/ref-seqs-silva132.qza
+
+# Train the classifier
+qiime feature-classifier fit-classifier-naive-bayes \
+  --i-reference-reads data/qiime2/ref-seqs-silva132.qza \
+  --i-reference-taxonomy data/qiime2/ref-taxonomy-silva132.qza \
+  --o-classifier data/qiime2/silva132-99otu-27-338-classifier.qza
+
+# Assign taxanomy using the trained featureClassifier
+qiime feature-classifier classify-sklearn \
+  --i-classifier data/qiime2/silva132-99otu-27-338-classifier.qza \
+  --i-reads data/qiime2/rep-seqs.qza \
+  --o-classification data/qiime2/taxonomy-silva132.qza
+
+qiime metadata tabulate \
+  --m-input-file data/qiime2/taxonomy-silva132.qza \
+  --o-visualization data/qiime2/taxonomy-silva132.qzv
+
+# Taxonomic barplot 
+qiime taxa barplot \
+  --i-table data/qiime2/table.qza \
+  --i-taxonomy data/qiime2/taxonomy-silva132.qza \
+  --m-metadata-file data/metadata.tsv \
+  --o-visualization data/qiime2/taxa-bar-plots.qzv
+
+#======================================================================================================================
+# Feature-table filtering
+#======================================================================================================================
+# 1. Taxonomy-based filtering
+# Filter out sequences assigned as chloroplast or mitochondria, and keep features with a phylum-level annotation
+qiime taxa filter-table \
+  --i-table data/qiime2/table.qza \
+  --i-taxonomy data/qiime2/taxonomy-silva132.qza \
+  --p-include D_0__ \
+  --p-exclude mitochondria,chloroplast \
+  --o-filtered-table data/qiime2/table-no-chlo-mito-with-phyla.qza
+
+# 2. Filter out singletons, which should not be present if sequences were denoised on per sample basis. 
+# Short overlapping length can result in singletons, which are likely artifacts as they are real biological sequences.
+qiime feature-table filter-features \
+  --i-table data/qiime2/table-no-chlo-mito-with-phyla.qza \
+  --p-min-frequency 2 \
+  --o-filtered-table data/qiime2/table-no-chlo-mito-sin-with-phyla.qza
+
+# 3. Filter out low-prevalence features that are present in only one sample
+qiime feature-table filter-features \
+  --i-table data/qiime2/table-no-chlo-mito-sin-with-phyla.qza \
+  --p-min-samples 2 \
+  --o-filtered-table data/qiime2/table-no-chlo-mito-sin-lowPre-with-phyla.qza
+
+# 4. Filter out contaminant sequences 
+# 4.1. Convert sequence counts in the feature-table into relative abundances
+qiime feature-table relative-frequency \
+  --i-table data/qiime2/table-no-chlo-mito-sin-lowPre-with-phyla.qza \
+  --o-relative-frequency-table data/qiime2/table-no-chlo-mito-sin-lowPre-with-phyla-rel.qza
+
+# 4.2. Export feature-table and taxonomy 
+# Note that the exported biom table will be named as feature-table.biom 
+qiime tools export \
+  --input-path data/qiime2/table-no-chlo-mito-sin-lowPre-with-phyla-rel.qza \
+  --output-path data/qiime2/exported-files
+
+qiime tools export \
+  --input-path data/qiime2/taxonomy-silva132.qza \
+  --output-path data/qiime2/exported-files
+
+# 4.3. Add taxonomy to the exported feature-table 
+# change column names of the taxonomy file
+sed -i -e '1s/Feature ID/#OTU ID/' -e '1s/Taxon/taxonomy/' data/qiime2/exported-files/taxonomy.tsv 
+
+# Add taxonomy to the feature-table 
+biom add-metadata \
+  -i data/qiime2/exported-files/feature-table.biom \
+  -o data/qiime2/exported-files/table-no-chlo-mito-sin-lowPre-with-phyla-tax-rel.biom \
+  --observation-metadata-fp data/qiime2/exported-files/taxonomy.tsv \
+  --sc-separated taxonomy 
+
+# 4.4. Export the feature-table with taxonomy
+biom convert \
+  -i data/qiime2/exported-files/table-no-chlo-mito-sin-lowPre-with-phyla-tax-rel.biom \
+  -o data/qiime2/exported-files/table-no-chlo-mito-sin-lowPre-with-phyla-tax-rel.tsv \
+  --to-tsv \
+  --header-key taxonomy
+
+# 4.5. Explore the exported feature-table and make a tsv file containing featureIDs of contaminant sequences for filtering
+qiime feature-table filter-features \
+  --i-table data/qiime2/table-no-chlo-mito-sin-lowPre-with-phyla.qza \
+  --p-exclude-ids \
+  --m-metadata-file data/qiime2/contaminant-features.tsv \
+  --o-filtered-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-with-phyla.qza
+
+#======================================================================================================================
+# Phylogeny
+#======================================================================================================================
+# Filter rep-seqs based on filtered feature-table
+qiime feature-table filter-seqs \
+  --i-data data/qiime2/rep-seqs.qza \
+  --i-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-with-phyla.qza \
+  --p-no-exclude-ids \
+  --o-filtered-data data/qiime2/rep-seqs-filtered.qza
+
+# De dovo tree construction =======================================================================
+qiime phylogeny align-to-tree-mafft-fasttree \
+  --i-sequences data/qiime2/rep-seqs-filtered.qza \
+  --o-alignment data/qiime2/aligned-rep-seqs.qza \
+  --o-masked-alignment data/qiime2/masked-aligned-rep-seqs.qza \
+  --o-tree data/qiime2/unrooted-tree.qza \
+  --o-rooted-tree data/qiime2/rooted-tree.qza
+
+# phylogenetic placement with SEPP ================================================================ 
+qiime fragment-insertion sepp \
+  --i-representative-sequences data/qiime2/rep-seqs-filtered.qza \
+  --o-tree data/qiime2/insertion-tree.qza \
+  --o-placements data/qiime2/insertion-placements.qza
+
+# Filter featureTable based on aligened tree
+qiime fragment-insertion filter-features \
+  --i-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-with-phyla.qza \
+  --i-tree data/qiime2/insertion-tree.qza \
+  --o-filtered-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-uninserted-with-phyla.qza \
+  --o-removed-table data/qiime2/table-sepp-uninserted-features.qza \
+  --verbose
+
+#======================================================================================================================
+# Feature-table summary 
+#======================================================================================================================
+# Feature-table summary 
+qiime feature-table summarize \
+  --i-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-with-phyla.qza \
+  --m-sample-metadata-file data/metadata.tsv \
+  --o-visualization data/qiime2/table-no-chlo-mito-sin-lowPre-contam-with-phyla.qzv 
+
+# Taxonomic barplot 
+qiime taxa barplot \
+  --i-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-with-phyla.qza \
+  --i-taxonomy data/qiime2/taxonomy-silva132.qza \
+  --m-metadata-file data/metadata.tsv \
+  --o-visualization data/qiime2/taxa-bar-plots-no-chlo-mito-sin-lowPre-contam-with-phyla.qzv
+
+#======================================================================================================================
+# Evaluate expected vs.observed taxonomic composition of the mock
+#======================================================================================================================
+# Convert the tsv file, which contains the expected taxonomic composition of the mock, to a biom table
+biom convert \
+  -i data/reference/mock_expected.tsv \
+  -o data/reference/mock-expected.biom \
+  --table-type="OTU table" \
+  --to-json
+
+# Import the biom table
+qiime tools import \
+  --input-path data/reference/mock-expected.biom \
+  --type 'FeatureTable[Frequency]' \
+  --input-format BIOMV210Format \
+  --output-path data/qiime2/mock-expected.qza
+
+# Collapse feature-table at the species level
+qiime taxa collapse \
+  --i-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-with-phyla.qza \
+  --i-taxonomy data/qiime2/taxonomy-silva132.qza \
+  --p-level 7 \
+  --o-collapsed-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-with-phyla-l7.qza
+
+# Convert the sequence counts into relative abundances
+qiime feature-table relative-frequency \
+  --i-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-with-phyla-l7.qza \
+  --o-relative-frequency-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-with-phyla-l7-rel.qza
+
+# Filter the feature-table to contain the mock only 
+qiime feature-table filter-samples \
+  --i-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-with-phyla-l7-rel.qza \
+  --m-metadata-file data/metadata.tsv \
+  --p-where "SampleType='Mock'" \
+  --p-no-exclude-ids \
+  --o-filtered-table data/qiime2/mock-observed.qza
+
+# Evaluate taxonomic composition of the mock
+qiime quality-control evaluate-composition \
+  --i-expected-features data/qiime2/mock-expected.qza \
+  --i-observed-features data/qiime2/mock-observed.qza \
+  --o-visualization data/qiime2/mock-comparison.qzv
+
+#======================================================================================================================
+# Alpha and beta diversity analysis 
+#======================================================================================================================
+# Exclude mock and negative controls from downstream analysis
+qiime feature-table filter-samples \
+  --i-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-with-phyla.qza \
+  --m-metadata-file data/metadata.tsv \
+  --p-where "SampleType IN ('Mock', 'Blank-Extraction', 'Blank-Library')" \
+  --p-exclude-ids \
+  --o-filtered-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-ctrl-with-phyla.qza
+
+# Generating core metrics
+qiime diversity core-metrics-phylogenetic \
+  --i-phylogeny data/qiime2/rooted-tree.qza \
+  --i-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-ctrl-with-phyla.qza \
+  --m-metadata-file data/metadata.tsv \
+  --p-sampling-depth 1416 \
+  --output-dir data/qiime2/core-metrics-results
+
+# Rarefaction analysis and alpha-diversity group significance =========================================================
+# Alpha rarefaction plotting
+qiime diversity alpha-rarefaction \
+  --i-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-ctrl-with-phyla.qza \
+  --i-phylogeny data/qiime2/rooted-tree.qza \
+  --p-max-depth 1416 \
+  --m-metadata-file data/metadata.tsv \
+  --o-visualization data/qiime2/alpha-rarefaction.qzv
+
+# Alpha-diversity group significance
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity data/qiime2/core-metrics-results/faith_pd_vector.qza \
+  --m-metadata-file data/metadata.tsv \
+  --o-visualization data/qiime2/core-metrics-results/faith-pd-group-significance.qzv
+
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity data/qiime2/core-metrics-results/evenness_vector.qza \
+  --m-metadata-file data/metadata.tsv \
+  --o-visualization data/qiime2/core-metrics-results/evenness-group-significance.qzv
+
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity data/qiime2/core-metrics-results/observed_otus_vector.qza \
+  --m-metadata-file data/metadata.tsv \
+  --o-visualization data/qiime2/core-metrics-results/observed-otus-group-significance.qzv
+
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity data/qiime2/core-metrics-results/shannon_vector.qza \
+  --m-metadata-file data/metadata.tsv \
+  --o-visualization data/qiime2/core-metrics-results/shannon-group-significance.qzv
+
+# Beta-diversity group significance ===================================================================================
+# Beta-diversity group significance
+qiime diversity beta-group-significance \
+  --i-distance-matrix data/qiime2/core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file data/metadata.tsv \
+  --m-metadata-column SampleType \
+  --o-visualization data/qiime2/core-metrics-results/unweighted-unifrac-SampleType-significance.qzv \
+  --p-pairwise
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix data/qiime2/core-metrics-results/weighted_unifrac_distance_matrix.qza \
+  --m-metadata-file data/metadata.tsv \
+  --m-metadata-column SampleType \
+  --o-visualization data/qiime2/core-metrics-results/weighted-unifrac-SampleType-significance.qzv \
+  --p-pairwise
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix data/qiime2/core-metrics-results/bray_curtis_distance_matrix.qza \
+  --m-metadata-file data/metadata.tsv \
+  --m-metadata-column SampleType \
+  --o-visualization data/qiime2/core-metrics-results/bray-curtis-SampleType-significance.qzv \
+  --p-pairwise
+
+#======================================================================================================================
+# Comparing beta-diversity using DEICODE 
+#======================================================================================================================
+qiime deicode rpca \
+  --i-table data/qiime2/table-no-chlo-mito-sin-lowPre-contam-ctrl-with-phyla.qza \
+  --p-min-feature-count 10 \
+  --p-min-sample-count 500 \
+  --o-biplot data/qiime2/deicode/rpca-ordination.qza \
+  --o-distance-matrix data/qiime2/deicode/Aitchison-distance.qza
+
+qiime emperor biplot \
+  --i-biplot data/qiime2/deicode/rpca-ordination.qza \
+  --m-sample-metadata-file data/metadata.tsv \
+  --m-feature-metadata-file taxonomy-silva132.qza \
+  --o-visualization data/qiime2/deicode/rpca-biplot.qzv \
+  --p-number-of-features 8
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix data/qiime2/deicode/Aitchison-distance.qza \
+  --m-metadata-file data/metadata.tsv \
+  --m-metadata-column SampleType \
+  --p-method permanova \
+  --o-visualization data/qiime2/deicode/Aitchison-SampleType-significance.qzv \
+  --p-pairwise
+
+#======================================================================================================================
+# Differential abundance testing with ANCOM
+#======================================================================================================================
+# Differential abundance testing for diet 'Ref' and 'Soya'
+# 1.Filter diet 'T0' from the feature-table
+qiime feature-table filter-samples \
+  --i-table table-no-chlo-mito-sin-lowPre-contam-ctrl-with-phyla.qza \
+  --m-metadata-file data/metadata.tsv \
+  --p-where "Diet='T0'" \
+  --p-exclude-ids \
+  --o-filtered-table table-no-chlo-mito-sin-lowPre-contam-ctrl-T0-with-phyla.qza
+
+# 2.Exclude low-prevalent features from differential abundance testing
+qiime feature-table filter-features \
+  --i-table table-no-chlo-mito-sin-lowPre-contam-ctrl-T0-with-phyla.qza \
+  --p-min-samples 10 \
+  --o-filtered-table table-diet-Ref-Soya-ancom.qza
+
+# 3.Collapse feature-table at phylum and genus level
+qiime taxa collapse \
+  --i-table table-diet-Ref-Soya-ancom.qza \
+  --i-taxonomy taxonomy.qza \
+  --p-level 2 \
+  --o-collapsed-table table-diet-Ref-Soya-ancom-l2.qza
+
+qiime taxa collapse \
+  --i-table table-diet-Ref-Soya-ancom.qza \
+  --i-taxonomy taxonomy.qza \
+  --p-level 6 \
+  --o-collapsed-table table-diet-Ref-Soya-ancom-l6.qza
+
+# 4.Add pseudocount
+qiime composition add-pseudocount \
+  --i-table table-diet-Ref-Soya-ancom-l2.qza \
+  --o-composition-table comp-table-diet-Ref-Soya-ancom-l2.qza
+
+qiime composition add-pseudocount \
+  --i-table table-diet-Ref-Soya-ancom-l6.qza \
+  --o-composition-table comp-table-diet-Ref-Soya-ancom-l6.qza
+
+# 5. Differential abundance testing
+qiime composition ancom \
+  --i-table comp-table-diet-Ref-Soya-ancom-l2.qza \
+  --m-metadata-file data/metadata.tsv \
+  --m-metadata-column Diet \
+  --o-visualization ancom-l2-diet-Ref-Soya.qzv
+
+qiime composition ancom \
+  --i-table comp-table-diet-Ref-Soya-ancom-l6.qza \
+  --m-metadata-file data/metadata.tsv \
+  --m-metadata-column Diet \
+  --o-visualization ancom-l6-diet-Ref-Soya.qzv
+

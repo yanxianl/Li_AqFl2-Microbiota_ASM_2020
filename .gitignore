@@ -2,9 +2,22 @@
 .Rhistory
 .RData
 
-data/*/*
-!data/processed/*
-!data/reference/mock*
 !README.md
 !metadata.tsv
+
+data/*/*
+!data/dada2/seqtab-nochim.txt
+!data/dada2/rep-seqs.fna
+!data/processed/*
+!data/qiime2/*.qzv
+!data/qiime2/decontam/*.pdf
+!data/qiime2/decontam/table*.tsv
+!data/qiime2/decontam/contaminant*.tsv
+!data/qPCR/*
+!data/raw/LightCycler96/*
+!data/reference/mock*.pdf
+!data/reference/mock*.tsv
+
+
+
 

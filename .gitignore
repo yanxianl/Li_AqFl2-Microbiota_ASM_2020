@@ -10,9 +10,11 @@ data/*/*
 !data/dada2/rep-seqs.fna
 !data/processed/*
 !data/qiime2/*.qzv
+!data/qiime2/core-metrics-results/*.qzv
 !data/qiime2/decontam/*.pdf
 !data/qiime2/decontam/table*.tsv
 !data/qiime2/decontam/contaminant*.tsv
+!data/qiime2/robust-Aitchison-PCA/*.qzv
 !data/qPCR/*
 !data/raw/LightCycler96
 !data/reference/mock*.pdf

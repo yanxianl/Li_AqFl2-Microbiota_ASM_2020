@@ -14,7 +14,7 @@ data/*/*
 !data/qiime2/decontam/table*.tsv
 !data/qiime2/decontam/contaminant*.tsv
 !data/qPCR/*
-!data/raw/LightCycler96/*
+!data/raw/LightCycler96
 !data/reference/mock*.pdf
 !data/reference/mock*.tsv
 

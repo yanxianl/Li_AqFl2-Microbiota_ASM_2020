@@ -5,7 +5,7 @@
 !README.md
 !metadata.tsv
 
-data/*/*
+data/
 !data/dada2/seqtab-nochim.txt
 !data/dada2/rep-seqs.fna
 !data/processed/*

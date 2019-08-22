@@ -2,23 +2,16 @@
 .Rhistory
 .RData
 
-!README.md
-!metadata.tsv
+data/dada2/*biom*
+data/qiime2/*.qza
+data/qiime2/*/*.qza
+data/qiime2/decontam/*.biom
+data/qiime2/decontam/taxonomy.tsv
+data/raw/casava-18-paired-end-demultiplexed/
+data/reference/silva*
+data/reference/*.biom
 
-data/
-!data/dada2/seqtab-nochim.txt
-!data/dada2/rep-seqs.fna
-!data/processed/*
-!data/qiime2/*.qzv
-!data/qiime2/core-metrics-results/*.qzv
-!data/qiime2/decontam/*.pdf
-!data/qiime2/decontam/table*.tsv
-!data/qiime2/decontam/contaminant*.tsv
-!data/qiime2/robust-Aitchison-PCA/*.qzv
-!data/qPCR/*
-!data/raw/LightCycler96
-!data/reference/mock*.pdf
-!data/reference/mock*.tsv
+
 
 
 

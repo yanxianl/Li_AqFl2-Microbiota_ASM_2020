@@ -26,9 +26,9 @@ load("aqfl2_physeq.RData")
 Taxa that were not seen with more than 3 counts in at least 20% of samples are filtered. Subsequently, those with a coefficient of variation ≤ 3 are filtered. Finally we add a pseudocount of 1 to the remaining ASVs to avoid calculating log-ratios involving zeros. Alternatively other replacement methods may be used instead if desired; the subsequent taxa weighting procedure we will describe complements a variety of zero replacement methods. 
 
 ```{r, message=FALSE, warning=FALSE}
-#physeq <- subset_samples(physeq, Diet == "REF") 
+#physeq <- subset_samples(physeq, Diet == "IM") 
 #physeq <- filter_taxa(physeq, function(x) sum(x > 2) > (0.2*length(x)), TRUE)
-physeq <- filter_taxa(physeq, function(x) sd(x)/mean(x) > 2.0, TRUE)
+#physeq <- filter_taxa(physeq, function(x) sd(x)/mean(x) > 2.0, TRUE)
 physeq <- transform_sample_counts(physeq, function(x) x+1)
 ```
 
@@ -102,9 +102,9 @@ Euclidean distance in PhILR space can be used for ordination analysis. We do thi
 gp.dist <- dist(gp.philr, method="euclidean")
 gp.pcoa <- ordinate(physeq, 'PCoA', distance=gp.dist)
 plot_ordination(physeq, gp.pcoa, 
-                color='Diet', 
-                shape = 'SampleOrignin',
-                axes = 1:2) + geom_point(size=4)
+                color='SampleOrignin', 
+                shape = 'Diet',
+                axes = 2:3) + geom_point(size=4)
 ```
 
 # Identify Balances that Distinguish Human/Non-Human

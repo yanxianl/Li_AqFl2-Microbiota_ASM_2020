@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>LightCycler 96 | Experiment Report</title>	
+<script src="report_resources/scripts/clmenu.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="report_resources\report_style.css">
+</head>
+<body onload="Initialize('menuItem0')">
+	<div id="header">
+       <img src="report_resources/images/logo.png" alt="LC96 logo"/>
+	   <div class="logo">
+		<img src="report_resources/images/rochelogo.jpg" alt="Roche logo" width="56" height="29">
+	   </div>
+       <div id="header_border"></div>
+    </div>
+
+	<div id="main_content">
+		<div id="nav_container">
+		<dl id="main_nav_list">
+<dt><a id="menuItem0"onclick="selectItem('menuItem0', 'main_nav_list')" href="report_resources/basic_info.html" target="detail_report_content">Info</a></dt>
+<dt><a id="menuItem1"onclick="selectItem('menuItem1', 'main_nav_list')" href="report_resources/run_editor.html" target="detail_report_content">Run Profile</a></dt>
+<dt><a id="menuItem2"onclick="selectItem('menuItem2', 'main_nav_list')" href="report_resources/sample_editor.html" target="detail_report_content">Samples</a></dt>
+<dt><a id="menuItem3"onclick="selectItem('menuItem3', 'main_nav_list')" href="report_resources/raw_data.html" target="detail_report_content">RawData</a></dt>
+<dt><a onclick="toggleMenu('analysis_nav_list')" target="detail_report_content">Analysis<img id="expandStateIcon" src="report_resources/images/expand_icon.png"/></a></dt>
+<dt><dl id="analysis_nav_list">
+<dt><a id="analysis_nav_list_menuItem0"onclick="selectItem('analysis_nav_list_menuItem0', 'main_nav_list')" href="report_resources/tm%20calling001.html" target="detail_report_content">Tm Calling</a></dt>
+<dt><a id="analysis_nav_list_menuItem1"onclick="selectItem('analysis_nav_list_menuItem1', 'main_nav_list')" href="report_resources/abs%20quant001.html" target="detail_report_content">Abs Quant</a></dt>
+</dl>
+</dt></dl>
+
+		</div>
+		<div id="report_content_container">                                    
+			<iframe id="report_viewer" name="detail_report_content" frameborder="0" src=""/>
+		</div>
+		<div id="footer">			
+		</div>
+	</div>
+</body>
+</html>

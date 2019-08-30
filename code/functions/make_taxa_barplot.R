@@ -1,4 +1,4 @@
-# The make_barplot() function is modified from the Microbiome.Barplot() function 
+# The make_taxa_barplot() function is modified from the Microbiome.Barplot() function 
 # from the MicrobeR package developed by Jordan Bisanz.
 
 #' Visualize taxonomy with a stacked bar plot
@@ -6,35 +6,35 @@
 #' @description A wrapper function to create a stacked taxa barplot. 
 #'    The most abundant features (defaults to 10, based on rowMeans) will be plotted unless specified. 
 #'    Anything of over 10 features will use default coloring which may be difficult to interpret.
-#' @param table A feature table (ASVs/OTUs) with counts where sample names are column names and feature IDs are in row names
+#' @param count_table A feature table (ASVs/OTUs) with counts where sample names are column names and feature IDs are in row names
 #' @param metadata A sample metadata where sample names are row names
-#' @param grouping_var A metadata variable to group the samples
-#' @param taxa_to_plot The number of features to be displayed on the barplot
-#' @param collapse whether to show average feature abundance by the grouping variable or not
+#' @param group A metadata variable to group the samples
+#' @param ntaxa The number of features to be displayed on the barplot
+#' @param plot_mean whether to show average feature abundance by the grouping variable or not
 #' @return A stacked barplot showing relative abundance of features
-#' @usage make_barplot(table = table, metadata = metadata, grouping_var = var, taxa_to_plot = 10, collapse = F)
+#' @usage make_taxa_barplot(count_table = otu_table, metadata = metadata, group = var, ntaxa = 10, plot_mean = F)
 #' @export
 
-make_barplot <- function(table, metadata, grouping_var, taxa_to_plot, collapse){
+make_taxa_barplot <- function(count_table, metadata, ntaxa, group, plot_mean){
   
-  if(missing(taxa_to_plot) & nrow(table)>10){taxa_to_plot = 10}
-  else if (missing(taxa_to_plot)) {taxa_to_plot = nrow(table)}
+  if(missing(ntaxa) & nrow(count_table)>10){ntaxa = 10}
+  else if (missing(ntaxa)) {ntaxa = nrow(count_table)}
   
-  if(missing(collapse)){collapse = F}
+  if(missing(plot_mean)){plot_mean = F}
   
-  if(missing(grouping_var) & collapse == T){stop('The argument "grouping_var" must be specified if collapse = TRUE')}
+  if(missing(group) & plot_mean == T){stop('The argument "group" must be specified if plot_mean = TRUE')}
   
-  table <- Make.Percent(table)
-  table <- table[order(rowMeans(table), decreasing = T), ]
-  if(taxa_to_plot < nrow(table)){ 
-    Others <- colSums(table[(taxa_to_plot + 1):nrow(table), ])
-    table <- rbind(table[1:taxa_to_plot, ], Others)
+  count_table <- Make.Percent(count_table)
+  count_table <- count_table[order(rowMeans(count_table), decreasing = T), ]
+  if(ntaxa < nrow(count_table)){ 
+    Others <- colSums(count_table[(ntaxa + 1):nrow(count_table), ])
+    count_table <- rbind(count_table[1:ntaxa, ], Others)
   }
   
-  forplot <- TidyConvert.ToTibble(table, "Taxa") %>% gather(-Taxa, key = "SampleID", value = "Abundance") 
+  forplot <- TidyConvert.ToTibble(count_table, "Taxa") %>% gather(-Taxa, key = "SampleID", value = "Abundance") 
   forplot$Taxa <- factor(forplot$Taxa,levels = rev(unique(forplot$Taxa)))
   
-  if(!missing(metadata) & !missing(grouping_var)){
+  if(!missing(metadata) & !missing(group)){
     if(TidyConvert.WhatAmI(metadata) == "data.frame" | TidyConvert.WhatAmI(metadata) == "matrix") {metadata <- TidyConvert.ToTibble(metadata, "SampleID")}
     forplot <- inner_join(forplot, metadata, by = "SampleID")
   }
@@ -42,38 +42,36 @@ make_barplot <- function(table, metadata, grouping_var, taxa_to_plot, collapse){
   plot <- ggplot(forplot, aes(x = SampleID, y = Abundance, fill = Taxa)) +
             geom_bar(stat = "identity") +
             labs(x = "SampleID", y = "Relative abundance (%)") +
-            scale_y_continuous(expand = expand_scale(mult = c(0, 0.02))) + 
+            scale_y_continuous(breaks = 0:10*10, expand = expand_scale(mult = c(0, 0.02))) + 
             theme_cowplot() +
-            guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
             theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
                   legend.text = element_text(size = 10),
-                  legend.position = "right") 
+                  legend.justification = "top") 
   
-  if(!missing(grouping_var) & collapse == T){
-    grouping_var <- enquo(grouping_var)
-    plot <- group_by(forplot, !!grouping_var, Taxa) %>% 
+  if(!missing(group) & plot_mean == T){
+    group <- enquo(group)
+    plot <- group_by(forplot, !!group, Taxa) %>% 
             summarise(Abundance_mean = mean(Abundance)) %>%
-            ggplot(aes(x = !!grouping_var, y = Abundance_mean, fill = Taxa)) +
+            ggplot(aes(x = !!group, y = Abundance_mean, fill = Taxa)) +
               geom_bar(stat = "identity") +
-              labs(x = grouping_var, y = "Relative abundance (%)") +
-              scale_y_continuous(expand = expand_scale(mult = c(0, 0.02))) + 
+              labs(x = group, y = "Relative abundance (%)") +
+              scale_y_continuous(breaks = 0:10*10, expand = expand_scale(mult = c(0, 0.02))) + 
               theme_cowplot() +
-              guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
               theme(legend.text = element_text(size = 10),
-                    legend.position = "right")  
+                    legend.justification = "top")  
   } 
   
-  if(taxa_to_plot <= 12){
+  if(ntaxa <= 12){
     plot <- plot + scale_fill_brewer(palette = "Paired")
   } else {
     getPalette <- colorRampPalette(RColorBrewer::brewer.pal(12, "Paired"))
-    colors <- getPalette(taxa_to_plot + 1)
+    colors <- getPalette(ntaxa + 1)
     plot <- plot + scale_fill_manual(values = colors)
   }
   
-  if(!missing(grouping_var) & collapse == F){
-    grouping_var <- enquo(grouping_var)
-    plot <- plot + facet_grid(cols = vars(!!grouping_var), scales = "free", space = "free")
+  if(!missing(group) & plot_mean == F){
+    group <- enquo(group)
+    plot <- plot + facet_grid(cols = vars(!!group), scales = "free", space = "free")
   }
   return(plot)
 }

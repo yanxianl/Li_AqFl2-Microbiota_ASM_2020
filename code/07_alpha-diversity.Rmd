@@ -1,0 +1,276 @@
+---
+title: "Alpha-diversity"
+author: Yanxian Li
+date: "`r Sys.time()`"
+output: 
+  html_document: 
+    self_contained: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+  pdf_document: 
+    latex_engine: xelatex
+  word_document: default
+---
+  
+<style>
+pre code, pre, code {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+  word-break: keep-all !important;
+  word-wrap: initial !important;
+}
+</style>
+
+```{r style, echo=FALSE, message=FALSE, warning=FALSE, results="asis"}
+library(knitr)
+options(width=150) 
+opts_chunk$set(message=FALSE, error=FALSE, warning=FALSE)
+```
+
+# Getting ready
+Load packages
+```{r load-package}
+library(here) # [CRAN] A replacement for 'file.path()', locating the files relative to the project root
+library(tidyverse) # [CRAN] Easily install and load the 'Tidyverse'   
+library(cowplot)  # [CRAN] Streamlined plot theme and plot annotations for 'ggplot2' 
+library(RColorBrewer) # [CRAN] ColorBrewer Palettes
+library(gridExtra) # [CRAN] Miscellaneous functions for "Grid" graphics
+library(ggsignif) # [CRAN] Statistical significance labelling
+library(phyloseq) # [Bioconductor] Handling and analysis of high-throughput microbiome census data 
+library(microbiome) # [Bioconductor] Microbiome analytics
+library(picante) # [CRAN] Integrating phylogenies and ecology
+library(lmerTest) # [CRAN] Fits and tests in linear mixed effects models 
+library(ggResidpanel) # [CRAN] Panels and interactive versions of diagnostic plots using 'ggplot2'
+library(influence.ME) # [CRAN] Tools for detecting influential data in mixed effects models
+library(emmeans) # [CRAN] Post-hoc tests for fixed effects using least-squares means
+
+# Set seed
+set.seed(1910)
+```
+
+Load data
+```{r load-data}
+load(here("data", "processed", "phyloseq.RData"))
+
+# Extract metadata from the phyloseq object
+metadata <- data.frame(sample_data(physeq), check.names = FALSE)
+```
+
+# Compute alpha-diversity
+Here, we compute the alpha-diversity via the `alpha()` and `pd()` function from the *microbiome* and *picante* package, respectively. 
+```{r compute-adiv}
+# We'll use species-level feature table for estimating alpha-diversity
+physeq_s <- tax_glom(physeq, "Species")
+
+# Compute Observed features, Peilou's Evenness and Shannon index
+adiv_npd <- alpha(physeq_s, index = c("observed", "evenness_pielou", "diversity_shannon")) %>%
+  rownames_to_column("SampleID")
+
+# Compute Faith's Phylogenetic Diversity
+adiv_pd <- pd(samp = t(otu_table(physeq_s)), tree = phy_tree(physeq), include.root = F) %>%
+  select(PD) %>%
+  rownames_to_column("SampleID")
+
+# Putting together
+adiv <- inner_join(adiv_npd, adiv_pd, by = "SampleID") %>%
+  inner_join(rownames_to_column(metadata, "SampleID"), by = "SampleID") %>%
+  rename("Observed species" = observed, "Pielou's Evenness" = evenness_pielou, 
+         Shannon = diversity_shannon, "Faith's PD" = PD) %>%
+  gather("adiv", "value", "Observed species":"Faith's PD") %>%
+  mutate(FishID = as.character(FishID), NetPen = as.character(NetPen), 
+         adiv = factor(adiv, levels = c("Observed species", "Pielou's Evenness", "Shannon", "Faith's PD")))
+```
+
+# Plot alpha-diversity
+```{r plot-adiv, fig.width = 10, fig.height = 6}
+p <- ggplot(adiv, aes(x = SampleType, y = value)) +
+  geom_boxplot(aes(fill = SampleType), outlier.shape = NA) +
+  geom_jitter(shape = 16, position = position_jitter(0.2)) +
+  facet_wrap(~adiv, nrow = 1, scales = "free_y") +
+  scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.15))) +  
+  scale_fill_manual(values = brewer.pal(n = 12, name = "Paired")[c(1,2,7,8)]) +
+  labs(fill = "Sample type") +
+  theme_cowplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p
+```
+
+# Alpha-diversity group significance
+## Fit linear mixed effects models
+The alpha-diversity plot showed different dispersions among the sample type. Hence, we'll log transform the response variables to stabilize the mean-variance relationship
+```{r fit-lme, message=TRUE}
+# Split the dataframe by alpha-diversity indices
+adiv_spl <- split(adiv, f = adiv$adiv)
+
+# Fit model
+lme <- lapply(adiv_spl, function(x) 
+              lmer(log(value + 1) ~ Diet * SampleOrigin + (1|FishID) + (1|NetPen), data = x)) 
+```
+
+Two of the fitted models are singular. Let's look at the fitted models and find out the singular fits.
+```{r find-singularFit}
+lme
+```
+
+From the model outputs, we can see that the standard deviation of random effect `NetPen` for Observed species and Pielou's Evenness is zero, which indicates boundary fits. We'll update these models by removing `NetPen` from the models.
+```{r update-model, message=TRUE}
+lme <- lapply(lme, function(x) 
+              if(is.null(x@optinfo$conv$lme4$messages)) {
+                x
+              } else {
+                update(x, . ~ . -(1|NetPen))}
+              )
+```
+
+The updated models are not singular after removing the random effect `NetPen`. We proceed to model diagnostics.
+
+## Model diagnostics 
+Here we use the *ggResidpanel* package to produce a panel of plots for residual diagnostics.
+```{r resid_diag}
+lapply(
+  seq_along(lme), 
+  function(x) 
+  {
+    # Extract titles 
+    main <- ggdraw() + draw_label(names(lme)[x], fontface='bold')
+    # Make residual diagnostic plots
+    resid_panel <- resid_panel(lme[[x]], plots = "all", qqbands = T)
+    # Assemble plots
+    plot_grid(main, resid_panel, ncol = 1, rel_heights = c(1, 10))
+  }
+)
+```
+
+The residuals of Observed species and Faith's PD are not very good but we can live with that.
+
+## Inference
+For the significance testing of fixed effects, the likelihood ratio test (LRT) is often used. However, it can produce anti-conservative *p* values in situations where the data is unbalanced or the number of parameters is large compared to the number of observations. A better alternative is to use F test with Satterthwaite/Kenward-Roger approximation available from the *lmerTest* package.
+```{r anova_KR}
+fixef <- lapply(lme, function(x) anova(x, ddf = "Kenward-Roger"))
+fixef
+```
+
+## Conditional contrasts
+When interactions between main factors are included in the model, marginal means averaged over the levels of other covariates in the model can be misleading. A good practice is to specify conditional contrasts through the use of the `simple` argument to `contrast()`.
+```{r contracts_emmeans}
+# Compute estimated marginal means for factor combinations
+emm <- lapply(lme, function(x) emmeans(x, ~ Diet * SampleOrigin))
+
+# Conditional contrasts 
+ccomp <- lapply(emm, function(x) 
+                contrast(x, method = "consec", simple = "each", combine = TRUE, adjust = "mvt") %>%
+                summary())
+ccomp
+```
+
+# Display effects
+## Gather *p* values 
+```{r get_pval}
+# Gather p values of main effects
+p_fixef <- lapply(fixef, function(x) rownames_to_column(x, "term")) %>%
+  bind_rows(.id = "adiv") %>%
+  rename(p_val = "Pr(>F)") %>%
+  mutate(p_val = formatC(p_val, format = "f", digits = 3),
+         p_val = paste0("p = ", p_val),
+         p_val = gsub("p = 0.000", "p < 0.001", p_val),
+         term = gsub("Diet:SampleOrigin", "Interaction", term),
+         term = gsub("SampleOrigin", "Sample origin", term),
+         label = paste0(term, ": ", p_val))
+  
+# Gather p values of conditional contrasts
+p_ccomp <- bind_rows(ccomp, .id = "adiv") 
+
+# Make a dataframe for conditional p value annotation   
+anno1 <- filter(p_ccomp, SampleOrigin != ".") %>%
+  mutate(SampleOrigin = gsub("Contents", "DIC", SampleOrigin),
+         SampleOrigin = gsub("Mucosa", "DIM", SampleOrigin)) %>%
+  separate(contrast, sep = " - ", c("start", "end")) %>%
+  mutate(start = paste0(start, "-", SampleOrigin),
+         end = paste0(end, "-", SampleOrigin))
+  
+anno2 <- filter(p_ccomp, Diet != ".") %>%
+  mutate(contrast = gsub("Contents", "DIC", contrast),
+         contrast = gsub("Mucosa", "DIM", contrast)) %>%
+  # the "end" comes before "start" because we need to use "REF-DIC" as the starting point
+  separate(contrast, sep = " - ", c("end", "start")) %>%
+  mutate(start = paste0(Diet, "-", start),
+         end = paste0(Diet, "-", end)) 
+  
+anno <- bind_rows(anno1, anno2) %>%
+  select(adiv, start, end, p.value) %>%
+  # the columns are arranged in a way that p value annotation starts from left to right
+  arrange(match(adiv, c("Observed species", "Pielou's Evenness", "Shannon", "Faith's PD")),
+          match(start, c("REF-DIC", "REF-DIM", "IM-DIC")),
+          match(end, c("REF-DIM", "IM-DIC"))) %>%
+  # the following 4 lines of code convert p values to the corresponding asterisks
+  mutate(p.value = ifelse(p.value < 0.001, "***", p.value),
+         p.value = ifelse(p.value >= 0.001 & p.value < 0.01, "**", p.value),
+         p.value = ifelse(p.value >= 0.01 & p.value < 0.05, "*", p.value),
+         p.value = ifelse(p.value >= 0.05, "NS", p.value),
+         # position of p value label on y axis 
+         y = c(180, 195, 210, 225, 0.88, 0.96, 1.04, 1.12, 3.5, 3.8, 4.1, 4.4, 22.5, 24.5, 26.5, 28.5),
+         # ensure alpha-diversity indices are plotted in the desired order
+         adiv = factor(adiv, levels = c("Observed species", "Pielou's Evenness", "Shannon", "Faith's PD"))) 
+```
+
+## Annotate the plot
+```{r annotate_plot, fig.width = 10, fig.height = 10}
+# Make a list of alpha-diversity plots
+p_list <- lapply(
+  as.list(levels(adiv$adiv)),
+  function(x) 
+  {
+    # Make an inital plot
+    p <- filter(adiv, adiv == x) %>%
+      ggplot(aes(x = SampleType, y = value)) +
+      geom_boxplot(aes(fill = SampleType), outlier.shape = NA) +
+      geom_jitter(shape = 16, position = position_jitter(0.2)) +
+      facet_wrap(~adiv, nrow = 1, scales = "free_y") +
+      scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.15))) +  
+      labs(x = "") +
+      theme_cowplot() +
+      scale_fill_manual(values = brewer.pal(n = 12, name = "Paired")[c(1,2,7,8)]) +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),legend.position = "none") 
+    
+    # Add p values of conditional contrasts to the plot
+    p <- p + geom_signif(data = filter(anno, adiv == x), 
+                         aes(xmin = start, xmax = end, annotations = p.value, y_position = y),
+                         map_signif_level = TRUE,
+                         tip_length = 0.01,
+                         textsize = 4, 
+                         manual = T)
+    
+    # Convert the table containing p values of main effects to a grid graphic
+    tg <- filter(p_fixef, adiv == x) %>%
+      select(label) %>%
+      # the following 2 lines of code remove rownames and column names
+      as.matrix() %>%
+      unname() %>%
+      tableGrob(theme = ttheme_minimal(core = list(fg_params = list(hjust = 0, x = 0.1)),
+                                       rowhead = list(fg_params = list(hjust = 0, x = 0))))
+    
+    # Assemble plots
+    lab <- plot_grid(tg, NULL, labels = "", ncol = 1, rel_heights = c(1,2.5))
+    plot_grid(p, lab, labels = "", ncol = 2, rel_widths = c(2,1))
+  }
+)
+
+# Get figure legend
+legend <- get_legend(p)
+
+# Assemble plots
+prow <- plot_grid(plotlist = p_list, nrow = 2, align = 'v', axis = "l", labels = "")
+
+# Add legend to the assembled plot
+plot_grid(prow, legend, rel_widths = c(8, 1))
+
+# Export figure
+ggsave(here("result", "figures", "Figure 4.tiff"), width = 10, height = 10,
+       units = "in", dpi = 300, compression = "lzw")
+```
+
+# Session information
+```{r session-info}
+sessionInfo()
+```

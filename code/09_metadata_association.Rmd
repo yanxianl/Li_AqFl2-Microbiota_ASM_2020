@@ -123,7 +123,7 @@ For the multivariate association analysis, we'll treat FishID and NetPen as rand
 ## Exploration of histological scores
 Histological examination of distal intestine showed various degrees of inflammation in different fish with no obivious diet effects. The morphological changes resemble those commonly observed in salmonid fed soybean meal as illustated below: shortening and fusion of mucosal folds, cellular infiltration within the lamina propria and submucosa, reduced supravacuolization within enterocytes and nucleus position disparity. Specifically, the histological sections were evaluated paying attentions to the changes in the mucosal fold height (mfh), supravacuolization within enterocytes (snv), submucosal cellularity (smc) and lamina propria cellularity (lpc).  
 
-![](img/SBMIE.png)
+![](`r here("image", "SBMIE.png")`)
 
 As shown below, histological scores under different evaluation categories for the same fish agree with each other in most cases. The mucosal fold height (mfh) and supravacuolization within enterocytes (snv) showed the least and most variable changes, whereas cellular infiltration within the submucosa (smc) and lamina propria (lpc) showed intermediate level of changes. To avoid the multicollinearity, we'll select one of them for the association analysis.
 ```{r plot_histo_scores, fig.height=8, fig.width=10}

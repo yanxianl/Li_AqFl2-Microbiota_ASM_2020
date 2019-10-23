@@ -1,0 +1,134 @@
+---
+title: "Import QIIME2 artifacts to R"
+author: Yanxian Li
+date: "`r Sys.time()`"
+output: 
+  html_document: 
+    self_contained: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+  pdf_document: 
+    latex_engine: xelatex
+  word_document: default
+---
+
+<style>
+pre code, pre, code {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+  word-break: keep-all !important;
+  word-wrap: initial !important;
+}
+</style>
+
+```{r style, echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+options(width=180) 
+opts_chunk$set(message=FALSE, error=FALSE, warning=FALSE)
+```
+
+# Load packages
+```{r load-package}
+library(here) # [CRAN] A replacement for 'file.path()', locating the files relative to the project root
+library(tidyverse) # [CRAN] # Easily Install and Load the 'Tidyverse'   
+library(qiime2R) # [github::jbisanz/qiime2R] # import qiime2 artifacts to R 
+library(phyloseq) # [Bioconductor] Handling and analysis of high-throughput microbiome census data 
+```
+
+# Building a phyloseq object
+## Metadata
+```{r}
+metadata <- read_tsv(here("data", "metadata.tsv"), comment = "#q2") 
+
+metadata <- metadata %>% 
+  rename(SampleID = "#SampleID") %>%
+  # filter negative controls and mock from feature table
+  filter(!SampleType %in% c("Blank-extraction", "Blank-library", "Mock")) %>%
+  mutate(SampleType = factor(SampleType, levels = c("REF-DIC", "REF-DIM", "IM-DIC", "IM-DIM")))
+```
+
+## Feature table
+```{r}
+table <- read_qza(here("data", "qiime2", "table-no-chlo-mito-lowPre-contam-ctrl-with-phyla.qza"))
+
+count_tab <- table$data %>% 
+  as.data.frame() 
+```
+
+## Taxonomy
+```{r}
+taxonomy <- read_qza(here("data", "qiime2", "taxonomy-silva132.qza"))
+
+tax_tab <- taxonomy$data %>% 
+  as.data.frame() %>%
+  mutate(Taxon = gsub("D_0", "k", Taxon), Taxon = gsub("D_1", "p", Taxon),
+         Taxon = gsub("D_2", "c", Taxon), Taxon = gsub("D_3", "o", Taxon),
+         Taxon = gsub("D_4", "f", Taxon), Taxon = gsub("D_5", "g", Taxon),
+         Taxon = gsub("D_6", "s", Taxon)) %>%
+  separate(Taxon, sep = ";", c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")) %>% 
+  column_to_rownames("Feature.ID") %>%
+  select(-Confidence)
+```
+
+## Phylogenetic tree  
+```{r}
+tree <- read_qza(here("data", "qiime2", "rooted-tree.qza"))
+```
+
+## Build a phyloseq object
+```{r}
+physeq <- phyloseq(otu_table(as.matrix(count_tab), taxa_are_rows = T),
+                   phy_tree(tree$data), 
+                   tax_table(as.matrix(tax_tab)), 
+                   sample_data(metadata %>% column_to_rownames("SampleID")))
+```
+
+# Alpha-diversity indices
+```{r}
+obs <- read_qza(here("data", "qiime2", "core-metrics-results", "observed_otus_vector.qza"))
+evn <- read_qza(here("data", "qiime2", "core-metrics-results", "evenness_vector.qza"))
+shn <- read_qza(here("data", "qiime2", "core-metrics-results", "shannon_vector.qza"))
+pd <- read_qza(here("data", "qiime2", "core-metrics-results", "faith_pd_vector.qza"))
+```
+
+# Beta-diversity
+## Distance metrics
+```{r}
+dist_jac <- read_qza(here("data", "qiime2", "core-metrics-results", "jaccard_distance_matrix.qza"))
+dist_bc <- read_qza(here("data", "qiime2", "core-metrics-results", "bray_curtis_distance_matrix.qza"))
+dist_uwuf <- read_qza(here("data", "qiime2", "core-metrics-results", "unweighted_unifrac_distance_matrix.qza"))
+dist_wuf <- read_qza(here("data", "qiime2", "core-metrics-results", "weighted_unifrac_distance_matrix.qza"))
+dist_aitchison <- read_qza(here("data", "qiime2", "robust-Aitchison-PCA", "Aitchison-distance.qza"))
+```
+
+## Ordination
+```{r}
+ord_jac <- read_qza(here("data", "qiime2", "core-metrics-results", "jaccard_pcoa_results.qza"))
+ord_bc <- read_qza(here("data", "qiime2", "core-metrics-results", "bray_curtis_pcoa_results.qza"))
+ord_uwuf <- read_qza(here("data", "qiime2", "core-metrics-results", "unweighted_unifrac_pcoa_results.qza"))
+ord_wuf <- read_qza(here("data", "qiime2", "core-metrics-results", "weighted_unifrac_pcoa_results.qza"))
+ord_aitchison <- read_qza(here("data", "qiime2", "robust-Aitchison-PCA", "rpca-ordination.qza"))
+```
+
+# Export data 
+```{r}
+# Phyloseq object
+save(physeq, file = here("data", "processed", "phyloseq.RData"))
+
+# Alpha-diversity indices
+save(obs, evn, shn, pd, file = here("data", "processed", "alpha-diversity_indices.RData"))
+
+# Beta-diversity: distance metrics
+save(dist_jac, dist_bc, dist_uwuf, dist_wuf, dist_aitchison, 
+     file = here("data", "processed", "beta-diversity_distance.RData"))
+
+# Beta-diversity: ordinations
+save(ord_jac, ord_bc, ord_uwuf, ord_wuf, ord_aitchison, 
+     file = here("data", "processed", "beta-diversity_ordination.RData"))
+```
+
+# Session information
+```{r session-info}
+sessionInfo()
+```

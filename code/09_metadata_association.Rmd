@@ -1,0 +1,654 @@
+---
+title: "Association testing between microbial clades and sample metadata"
+author: Yanxian Li
+date: "`r Sys.time()`"
+output: 
+  html_document: 
+    self_contained: true
+    toc: true
+    toc_float: true
+    toc_depth: 3
+  pdf_document: 
+    latex_engine: xelatex
+  word_document: default
+---
+  
+<style>
+pre code, pre, code {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+  word-break: keep-all !important;
+  word-wrap: initial !important;
+}
+</style>
+
+```{r style, echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+options(width=150) 
+opts_chunk$set(message=FALSE, error=FALSE, warning=FALSE)
+```
+
+# Getting ready
+### Set system locale
+```{r set_locale, results='hide'}
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+```
+
+### Load packages
+```{r load_package}
+library(here) # [CRAN] A replacement for 'file.path()', locating the files relative to the project root
+library(tidyverse) # [CRAN] Easily install and load the 'Tidyverse'  
+library(cowplot)  # [CRAN] Streamlined plot theme and plot annotations for 'ggplot2' 
+library(RColorBrewer) # [CRAN] ColorBrewer Palettes
+library(PerformanceAnalytics) # [CRAN] Collection of econometric functions for performance and risk analysis
+library(MicrobeR) # [github::jbisanz/MicrobeR] Handy functions for downstream visualization fo microbiome data
+library(phyloseq) # [Bioconductor] Handling and analysis of high-throughput microbiome census data 
+library(factoextra) # [CRAN] Extract and visualize the results of multivariate data analyses 
+library(lmerTest) # [CRAN] Fits and tests in linear mixed effects models 
+library(lsr) # [CRAN] # Companion to "Learning Statistics with R" 
+library(EMAtools) # [CRAN] # Data Management Tools for Real-Time Monitoring/Ecological Momentary Assessment Data 
+library(DT) # [CRAN] An R interface to the DataTables library
+library(Maaslin2)# [bitbucket::biobakery/maaslin2] Multivariate association analysis for microbiome data
+```
+
+### Load functions
+```{r load_function}
+source(here("code", "functions", "maaslin2_heatmap.R"))
+```
+
+### Load data
+```{r load_data}
+# Load data 
+load(here("data", "processed", "phyloseq.RData"))
+
+# Extract feature table, taxonomy and metadata from the phyloseq object
+count_tab <- as.data.frame(otu_table(physeq)) 
+tax_tab <- tax_table(physeq) %>% as("matrix") %>% as.data.frame()
+metadata <- data.frame(sample_data(physeq), check.names = FALSE) 
+```
+
+### Tidy sample metadata
+```{r tidy_metadata}
+metadata <- metadata %>% 
+  rownames_to_column() %>% 
+  # hyphens in column names cause problems. We use underscore instead
+  rename_all(~gsub("-", "_", .x)) %>%
+  # convert FishID and NetPen to character so that they can be correctly recognized as random effects
+  mutate(FishID = as.character(FishID), NetPen = as.character(NetPen))
+```
+
+# Collapse feature table at genus level
+First of all, we get the best taxonomic annotation for each feature. Starting at the phylum level, a higher level taxonomic rank will be assigned to a lower level taxonomic rank if the lower taxonomic rank is null or contains strings like "uncultured", "Ambiguous", or "metagenome".
+```{r get_best_hits}
+tab_species <- Summarize.Taxa(count_tab, tax_tab)$Species %>%
+  rownames_to_column("tax") %>%
+  separate(tax, sep = ";", c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")) %>%
+  # the following 5 lines format the taxonomy of each feature to the best hit
+  mutate(Class = ifelse(Class == "NA"|grepl("uncultured|Ambiguous|metagenome", Class), Phylum, Class),
+         Order = ifelse(Order == "NA"|grepl("uncultured|Ambiguous|metagenome", Order), Class, Order),
+         Family = ifelse(Family == "NA"|grepl("uncultured|Ambiguous|metagenome", Family), Order, Family),
+         Genus = ifelse(Genus == "NA"|grepl("uncultured|Ambiguous|metagenome", Genus), Family, Genus),
+         Species = ifelse(Species == "NA"|grepl("uncultured|Ambiguous|metagenome", Species), Genus, Species)) %>%
+  select(-(Kingdom:Family)) 
+```
+
+Then we filter genera consisting of only one species in the present data set.
+```{r get_monospecies_genera}
+index <- tab_species %>%
+  filter(grepl("g__", Genus)) %>%
+  group_by(Genus) %>%
+  nest() %>%
+  mutate(nrow = map_int(data, ~nrow(.x))) %>%
+  filter(nrow == 1) %>%
+  unnest() %>%
+  filter(grepl("s__", Species)) 
+```
+
+For genera consisting of only one species, we replace genus names with species names.
+```{r replace_genus_names}
+tab_genus <- tab_species %>%
+  mutate(Genus = ifelse(grepl(paste(index$Genus, collapse = "|"), Genus), Species, Genus)) %>%
+  select(-Species) %>%
+  # remove the prefix from genus/species names
+  mutate_if(is.character, ~gsub("g__|s__", "", .x)) %>%
+  # the following 2 lines merge rows with the same taxonomy
+  group_by(Genus) %>%
+  summarise_all(sum) %>%
+  column_to_rownames("Genus")
+```
+
+# Multivariate association analysis 
+For the multivariate association analysis, we'll treat FishID and NetPen as random effects. Diet and Sample origin are the two main fixed effects we're interested in. We're also interested in potential associations between the microbial clades and other sample metadata collected from the same fish. Due to the small number of observations, we'll limit the association tests to some of the sample metadata, including the distal intestine weight (DISI), histological scores of the distal intestine and expression levels of genes indicative of immune responses and barrier functions.
+
+## Exploration of histological scores
+Histological examination of distal intestine showed various degrees of inflammation in different fish with no obivious diet effects. The morphological changes resemble those commonly observed in salmonid fed soybean meal as illustated below: shortening and fusion of mucosal folds, cellular infiltration within the lamina propria and submucosa, reduced supravacuolization within enterocytes and nucleus position disparity. Specifically, the histological sections were evaluated paying attentions to the changes in the mucosal fold height (mfh), supravacuolization within enterocytes (snv), submucosal cellularity (smc) and lamina propria cellularity (lpc).  
+
+![](img/SBMIE.png)
+
+As shown below, histological scores under different evaluation categories for the same fish agree with each other in most cases. The mucosal fold height (mfh) and supravacuolization within enterocytes (snv) showed the least and most variable changes, whereas cellular infiltration within the submucosa (smc) and lamina propria (lpc) showed intermediate level of changes. To avoid the multicollinearity, we'll select one of them for the association analysis.
+```{r plot_histo_scores, fig.height=8, fig.width=10}
+# Get histological scores from the metadata
+df_histo <- filter(metadata, SampleOrigin == "Mucosa") %>% 
+  select(FishID, contains("Histo")) %>%
+  rename_all(~gsub("Histology_", "", .x)) %>%
+  gather(key = "item", value = "score", -FishID) %>%
+  mutate(item = factor(item, c("mfh", "smc", "lpc", "snv")), score = factor(score, unique(.$score))) 
+
+# Plot histological scores for each fish
+ggplot(df_histo, aes(x = item, y = score)) +
+  geom_point(colour = "blue") +
+  geom_line(aes(group = 1), colour = "blue") +
+  facet_wrap(~FishID, ncol = 6) +
+  labs(x = "Histological characteristics evaluated", y = "Histological scores") +
+  cowplot::theme_cowplot() +
+  theme(panel.grid.major.y = element_line(size = 0.5, linetype = 'dashed', colour = "black")) 
+```
+
+The distibution of histological scores under each evaluation category can be quite unbalanced, which is chanlleging for running a proper association analysis. Let's look at the histogram of histological scores under each evaluation category.
+```{r plot_histo_histogram,fig.width=6}
+ggplot(df_histo, aes(score)) +
+    geom_histogram(stat = "count") +
+    facet_wrap(~item) +
+    scale_y_continuous(limits = c(0, 30), breaks = 0:6*5, expand = expand_scale(mult = c(0, 0.05))) +
+    theme_cowplot() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          panel.grid.major.y = element_line(size = 0.5, linetype = 'dashed', colour = "black")) 
+```
+
+The distibution of histological scores was indeed quite unbalanced. We'll aggregate histological scores to binary data (normal VS. abnormal) so that data are more balanced. As microbiome data are sparse, aggregation of histologcial scores also increases the number of non-zero observations within each group, making association tests more reliable. 
+```{r aggregate_histo_scores}
+metadata <- metadata %>%
+  mutate_at(vars(contains("Histo")), ~gsub("Mild|Moderate|Marked|Severe", "Abnormal", .x))
+```
+
+Let's look at the distibution of histological scores after data aggregation.
+```{r plot_aggregated_histoScores, fig.width=6}
+filter(metadata, SampleOrigin == "Mucosa") %>% 
+  select(FishID, contains("Histo")) %>%
+  rename_all(~gsub("Histology_", "", .x)) %>%
+  gather(key = "item", value = "score", -FishID) %>%
+  mutate(item = factor(item, c("mfh", "smc", "lpc", "snv")), score = factor(score, unique(.$score))) %>% 
+  ggplot(aes(score)) +
+      geom_histogram(stat="count") +
+      facet_wrap(~item) +
+      scale_y_continuous(limits = c(0, 30), breaks = 0:6*5, expand = expand_scale(mult = c(0, 0.05))) +
+      theme_cowplot() +
+      theme(panel.grid.major.y = element_line(size = 0.5, linetype = 'dashed', colour = "black")) 
+```
+
+After data aggregation, lpc and snv showed a much balanced distribution. As cellular infiltration within the lamina propria (lpc) is a direct indication of gut inflammation, we'll use it for the association analysis.
+
+## Exploration of gene expression
+### Immune reponses
+In addition to histolgocial examination, some of the marker genes of the gut inflammation in Atlantic salmon were also profiled by qPCR assays. Let's plot the expression levels of these genes in fish assigned as normal or abnormal regarding the cellular infiltration within the lamina propria (lpc).
+```{r plot_immune_genes, fig.height=8, fig.width=9}
+# Get the gene expression data on immune responses and convert to the long format
+metadata_imm <- filter(metadata, SampleOrigin == "Mucosa") %>%
+  rename_all(~gsub("qPCR_", "", .x)) %>%
+  rename_all(~gsub("Histology_", "", .x)) %>%
+  select(NetPen, lpc, myd88:il4) %>%
+  gather(gene, quantity, -c(lpc, NetPen)) %>%
+  mutate(gene = factor(gene, unique(.$gene)), lpc = factor(lpc, unique(.$lpc)))
+  
+# Make boxplots showing difference in the gene expression level under different histological scores
+ggplot(metadata_imm, aes(x = lpc, y = quantity)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_point(aes(fill = lpc), size = 2, shape = 21, position = position_jitterdodge(0.2)) +
+  facet_wrap(~gene, ncol = 4, scales = "free_y") +
+  scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.1))) + 
+  labs(x = "Histological score of lamina propria cellularity", y = "Quantity") +
+  cowplot::theme_cowplot() +
+  scale_fill_brewer(palette = "Dark2") +
+  theme(legend.position = "none")
+```
+
+Next, let's find out differential expressed genes.
+```{r lmm_immune_genes}
+de_imm <- metadata_imm %>%
+  group_by(gene) %>% 
+  nest() %>% 
+  # fit linear mixed effects models
+  mutate(lmm    = map(data, ~lmer(log(quantity) ~ lpc + (1|NetPen), data = .x)), 
+         # mark models with singular fits
+         sf     = map_chr(lmm, ~ifelse(is.null(.x@optinfo$conv$lme4$messages), "no", "yes")),
+         # significance testing for the fixed effect using Kenward-Roger approximation
+         anv    = map(lmm, ~anova(.x, ddf = "Kenward-Roger")),
+         p_lmm  = map_dbl(anv, ~.x["lpc", "Pr(>F)"]),
+         # get effect size: cohen's D
+         es_lmm = map2_dbl(lmm, data, ~lme.dscore(mod = .x, data = .y, type = "lme4")[1, "d"]),
+         # run Welch t-test
+         lm     = map(data, ~t.test(log(quantity) ~ lpc, data = .x)),
+         p_lm   = map_dbl(lm, ~.x$p.value),
+         # get effect size: cohen's D
+         es_lm  = map_dbl(data, ~cohensD(log(quantity) ~ lpc, data = .x, , method = "unequal"))) %>%
+  select(gene, sf, p_lmm, p_lm, es_lmm, es_lm) %>%
+  mutate(p = ifelse(sf == "no", p_lmm, p_lm),
+         p_adj = p.adjust(p, method = "fdr"),
+         "Cohen's D" = ifelse(sf == "no", es_lmm, es_lm)) %>%
+  filter(p_adj < 0.05) %>%
+  mutate_if(is.numeric, ~ifelse(.x < 0.001, "< 0.001", round(.x, 3)))
+  
+datatable(de_imm, options = list(columnDefs = list(list(className = 'dt-left', targets = c(1:9))))) 
+```
+
+The expression levels of these maker genes are often correlated. Let's check the correlation between the differential expressed genes.
+```{r cor_chart_immune, fig.height=9, fig.width=9}
+# Subset metadata to contain differential expressed genes only
+metadata_immSig <- filter(metadata, SampleOrigin == "Mucosa") %>%
+  column_to_rownames("FishID") %>%
+  rename_all(~gsub("qPCR_", "", .x)) %>%
+  select(as.character(de_imm$gene))
+
+# Make correlation plot
+chart.Correlation(metadata_immSig, histogram = TRUE, pch = 19)
+```
+
+To avoid multicollinearity and to reduce the number of association testing, we'll run principle component analysis (PCA) and use the first principle component (PC) for the association analysis, which explains most of the variance in the data. As the expression levels of some of the genes are quite skewed, we'll log transform the data before running PCA.
+```{r cor_chart_immune_log, fig.height=9, fig.width=9}
+# Log transform the data
+metadata_immSigLog <- rownames_to_column(metadata_immSig, "FishID") %>%
+  mutate_if(is.numeric, ~log(.x)) %>%
+  column_to_rownames("FishID")
+
+# Check the data distribution after data transformation
+chart.Correlation(metadata_immSigLog, histogram = TRUE, pch = 19)
+```
+
+Now we run the PCA. We can see that the PC1 explains most of the variance.
+```{r pca_imm, fig.width=6}
+# Principle component analysis
+pca_imm <- prcomp(metadata_immSigLog, scale = TRUE)
+
+# Scree plot
+fviz_eig(pca_imm)
+```
+
+Plot contributions of variables on the PC1. 
+```{r var_importance_imm, fig.width=6}
+fviz_contrib(pca_imm, choice="var", axes = 1)
+```
+
+PCA biplot.
+```{r pca_biplot_imm}
+# Subset metadata for the biplot annotation
+pca_ann <- filter(metadata, SampleOrigin == "Mucosa") 
+
+# make biplot  
+fviz_pca_biplot(pca_imm, 
+                select.var = list(name = NULL, cos2 = NULL, contrib = 9),
+                col.ind = as.factor(pca_ann$Histology_lpc),  
+                pointsize = 2, 
+                invisible = "quali", # hide centroid
+                repel = TRUE,
+                label = "var",
+                legend.title = "lpc")
+```
+
+Extract PC1.
+```{r extract_pc1_imm}
+imm_pc1 <- pca_imm$x %>% 
+  as.data.frame() %>% 
+  select(PC1) %>%
+  rename(qPCR_immune_response = PC1) %>%
+  rownames_to_column("FishID") %>%
+  uncount(2)
+```
+
+### Barrier functions
+As shown below, the expression of barrier function relevant genes showed strong correlations.
+```{r cor_chart_barr, fig.height=6, fig.width=6}
+# Subset metadata 
+metadata_barr <- filter(metadata, SampleOrigin == "Mucosa") %>%
+  column_to_rownames("FishID") %>%
+  rename_all(~gsub("qPCR_", "", .x)) %>%
+  select(muc2:cdh1)
+
+# Correlation plot
+chart.Correlation(metadata_barr, histogram = TRUE, pch = 19)
+```
+
+Again, we'll run PCA and use the PC1 for the association analysis.
+```{r pca_barr, fig.width=6}
+pca_barr <- prcomp(metadata_barr, scale = TRUE)
+
+# Scree plot
+fviz_eig(pca_barr)
+```
+
+Plot contributions of variables on the PC1 
+```{r var_importance_barr, fig.width=6}
+fviz_contrib(pca_barr, choice="var", axes = 1)
+```
+
+PCA biplot
+```{r pca_biplot_barr}
+fviz_pca_biplot(pca_barr, 
+                select.var = list(name = NULL, cos2 = NULL, contrib = 5),
+                col.ind = as.factor(pca_ann$Histology_lpc),  
+                pointsize = 2, 
+                invisible = "quali", 
+                repel = TRUE,
+                label = "var",
+                legend.title = "lpc")
+```
+
+Extract PC1.
+```{r extract_pc1_barr}
+barr_pc1 <- pca_barr$x %>% 
+  as.data.frame() %>% 
+  select(PC1) %>%
+  rename(qPCR_barrier_function = PC1) %>%
+  rownames_to_column("FishID") %>%
+  uncount(2)
+```
+
+## Run MaAsLin2
+Add the extracted principle components to the metadata.
+```{r add_pcs}
+metadata <- bind_cols(metadata, imm_pc1, barr_pc1) %>%
+  mutate(Diet = factor(Diet, c("REF", "IM"))) %>%
+  rename(Sample_origin = SampleOrigin) %>%
+  column_to_rownames("rowname")
+  
+# Check if the rows were correctly matched during the table merging
+identical(metadata$FishID, metadata$FishID1)
+identical(metadata$FishID, metadata$FishID2)    
+```
+
+Define the fixed and random effects of interest.
+```{r define_fixef_ranef}
+# Fixed effects
+fixef <- c("Diet", "Sample_origin", "DISI", "Histology_lpc", "qPCR_immune_response", "qPCR_barrier_function")
+
+# Random effects
+ranef <- c("FishID", "NetPen")
+```
+
+Run multivariate association analysis.
+```{r run_maaslin2, results='hide'， fig.show='hide'}
+fit <- Maaslin2(input_data = tab_genus, 
+                input_metadata = metadata,
+                output = here("data", "maaslin2"),
+                min_abundance = 0.0001,
+                min_prevalence = 0.25,
+                max_significance = 0.25,
+                normalization = "TSS",
+                transform = "LOG",
+                analysis_method = "LM",
+                random_effects = ranef,
+                fixed_effects = fixef,
+                correction = "BH",
+                standardize = TRUE,
+                plot_heatmap = TRUE,
+                plot_scatter = TRUE)
+```
+
+## Customize MaAsLin2 outputs
+### Prepare data
+Merge MaAsLin2 outputs, feature table and metadata for plotting.
+```{r merge_tables}
+# Get features with significant associations for each metadata tested
+sig_result <- filter(fit$results, qval <= 0.25) %>%
+  mutate(N.not.zero = paste0(N.not.zero, "/", N)) %>%
+  arrange(feature)
+
+# Replicate metadata rows 
+metadata_rep <- rownames_to_column(metadata, "SampleID") %>%
+  uncount(nrow(sig_result)) %>%
+  arrange(SampleID)
+
+# Merge the collapsed feature table, metadata and features with significant associations  
+tab_sigAss <- tab_genus %>%
+  rownames_to_column("feature") %>%
+  mutate_if(is.numeric, ~.x/sum(.x)) %>%
+  filter(feature %in% unique(sig_result$feature)) %>%
+  left_join(count(sig_result, feature), by = "feature") %>%
+  uncount(n) %>%
+  arrange(feature) %>% 
+  bind_cols(sig_result, .) %>%
+  gather(SampleID, abundance, "AqFl2-01":"AqFl2-72") %>%
+  arrange(SampleID) %>%
+  bind_cols(metadata_rep, .) %>%
+  mutate(qval = ifelse(qval < 0.001, "< 0.001", round(qval, 3)), 
+         coef = formatC(coef, format = "e", digits = 1), 
+         ann_boxplot = paste("FDR:", qval),
+         ann_scatter = paste(paste("FDR:", qval), 
+                             "\n", 
+                             paste("coef:", coef), 
+                             "\n", 
+                             paste("N.not.zero:", N.not.zero))) 
+```
+
+### Heatmap
+Make a customized heatmap using a modified function from the *MaAsLin2* package.
+```{r customize_heatmap, fig.height=10, fig.width=4}
+hmp <- maaslin2_heatmap(output_results = here("data", "maaslin2", "all_results.tsv"),
+                        first_n = length(unique(sig_result$feature)),
+                        cell_value = "qval",
+                        data_label = "data",
+                        metadata_label = "metadata",
+                        title = FALSE,
+                        legend = FALSE,
+                        color = c("blue", "grey90", "red"),
+                        board_line_col = "white",
+                        colnames_rotate = 90,
+                        colnames_fontsize = 12,
+                        rownames_fontsize = 10,
+                        italize_rownames = TRUE)
+hmp
+```
+
+### Boxplot
+#### Diet
+Make boxplot for Diet effect, color points by SampleOrigin.
+```{r boxplot_diet_prepare, fig.width=10, fig.height=26}
+# Add number of non-zero observation to text annotation
+ann_diet <- filter(tab_sigAss, metadata == "Diet" ) %>%
+  group_by(feature, Diet) %>%
+  summarize(N = n(), N_nonzero_diet = paste0(sum(abundance != 0), "/", N)) %>%
+  mutate(ann_diet = paste0(paste0("N.not.zero(", Diet, "): ", N_nonzero_diet))) %>%
+  group_by(feature) %>%
+  summarize(n = sum(N), ann_diet = paste(ann_diet, collapse = "\n")) %>%
+  uncount(n) %>%
+  arrange(feature) %>%
+  select(feature, ann_diet)
+
+# Make a dataframe for plotting 
+sigAss_diet <- filter(tab_sigAss, metadata == "Diet" ) %>%
+  arrange(feature) %>%
+  bind_cols(ann_diet) %>%
+  mutate(ann_boxplot = paste0(ann_boxplot, "\n", ann_diet))
+
+# Make plots
+ggplot(sigAss_diet, aes(x = Diet, y = abundance)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(aes(colour = Sample_origin), shape = 16, position = position_jitter(0.2)) +
+  geom_text(aes(x = Inf, y = Inf, label = ann_boxplot), size = 3, hjust = 1.05, vjust = 1) +
+  facet_wrap(~feature, ncol = 3, scales = "free_y") +
+  scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.6)), 
+                     labels = scales::percent_format(accuracy = 0.01)) +   
+  labs(y = "Relative abundance") +
+  theme_cowplot() +
+  scale_fill_brewer(palette = "Dark2")
+```
+
+#### Sample origin
+Make boxplot for SampleOrigin effect, color points by Diet.
+```{r boxplot_Sample_origin, fig.width=10, fig.height=32}
+# Add number of non-zero observation to text annotation
+ann_origin <- filter(tab_sigAss, metadata == "Sample_origin" ) %>%
+  group_by(feature, Sample_origin) %>%
+  summarize(N = n(), N_nonzero_origin = paste0(sum(abundance != 0), "/", N)) %>%
+  mutate(ann_origin = paste0(paste0("N.not.zero(", Sample_origin, "): ", N_nonzero_origin))) %>%
+  group_by(feature) %>%
+  summarize(n = sum(N), ann_origin = paste(ann_origin, collapse = "\n")) %>%
+  uncount(n) %>%
+  arrange(feature) %>%
+  select(feature, ann_origin)
+
+# Make a dataframe for plotting
+sigAss_origin <- filter(tab_sigAss, metadata == "Sample_origin" ) %>%
+  arrange(feature) %>%
+  bind_cols(ann_origin) %>%
+  mutate(ann_boxplot = paste0(ann_boxplot, "\n", ann_origin)) 
+  
+# Make plots
+ggplot(sigAss_origin, aes(x = Sample_origin, y = abundance)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(aes(colour = Diet), shape = 16, position = position_jitter(0.2)) +
+  geom_text(aes(x = Inf, y = Inf, label = ann_boxplot), size = 3, hjust = 1.05, vjust = 1) +
+  facet_wrap(~feature, ncol = 3, scales = "free_y") +
+  scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.6)), 
+                     labels = scales::percent_format(accuracy = 0.01)) +   
+  labs(y = "Relative abundance") + 
+  theme_cowplot() +
+  scale_fill_brewer(palette = "Dark2")
+```
+
+#### Histology
+Make boxplot for hisstological scores, color points by SampleOrigin.
+```{r boxplot_histology_lpc, fig.width=9, fig.height=3}
+# Add number of non-zero observation to text annotation
+ann_lpc <- filter(tab_sigAss, metadata == "Histology_lpc" ) %>%
+  group_by(feature, Histology_lpc) %>%
+  summarize(N = n(), N_nonzero_lpc = paste0(sum(abundance != 0), "/", N)) %>%
+  mutate(ann_lpc = paste0(paste0("N.not.zero(", Histology_lpc, "): ", N_nonzero_lpc))) %>%
+  group_by(feature) %>%
+  summarize(n = sum(N), ann_lpc = paste(ann_lpc, collapse = "\n")) %>%
+  uncount(n) %>%
+  arrange(feature) %>%
+  select(feature, ann_lpc)
+
+# Make a dataframe for plotting
+sigAss_lpc <- filter(tab_sigAss, metadata == "Histology_lpc" ) %>%
+  arrange(feature) %>%
+  bind_cols(ann_lpc) %>%
+  mutate(ann_boxplot = paste0(ann_boxplot, "\n", ann_lpc)) 
+
+# Make plots
+ggplot(sigAss_lpc, aes(x = Histology_lpc, y = abundance)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(aes(colour = Sample_origin), shape = 16, position = position_jitter(0.2)) +
+  geom_text(aes(x = Inf, y = Inf, label = ann_boxplot), size = 3, hjust = 1.05, vjust = 1) +
+  facet_wrap(~feature, ncol = 2, scales = "free_y") +
+  scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.5)), 
+                     labels = scales::percent_format(accuracy = 0.01)) +   
+  labs(y = "Relative abundance") +  
+  theme_cowplot() +
+  scale_fill_brewer(palette = "Dark2")
+```
+
+### Scatter plot
+#### DISI
+Make scatter plot for DISI, color points by SampleOrigin.
+```{r scatter_plot_disi, fig.height=3, fig.width=9}
+filter(tab_sigAss, metadata == "DISI" ) %>%
+  ggplot(aes(x = DISI, y = abundance)) +
+    geom_point(aes(colour = Sample_origin), size = 2) +
+    geom_text(aes(x = Inf, y = Inf, label = ann_scatter), size = 3, hjust = 1.05, vjust = 1) +
+    facet_wrap(~feature, ncol = 2, scales = "free_y") +
+    scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.5)), 
+                       labels = scales::percent_format(accuracy = 0.01)) +   
+    labs(y = "Relative abundance") +   
+    theme_cowplot() +
+    scale_fill_brewer(palette = "Dark2")
+```
+
+#### qPCR_immune_response
+Make scatter plot for PC1 of immune response genes, color points by SampleOrigin. Note that as the PC1 increases, the expression levels of immune response genes decrease (see PCA biplot above). Hence, a positive coefficient from the MaAsLin2 outputs is indicative of negative correlation between the microbial clades and expression levels of immune genes, and vice versa.
+```{r scatter_plot_imm, fig.height=9, fig.width=9}
+filter(tab_sigAss, metadata == "qPCR_immune_response" ) %>%
+  ggplot(aes(x = qPCR_immune_response, y = abundance)) +
+    geom_point(aes(colour = Sample_origin), size = 2) +
+    geom_text(aes(x = Inf, y = Inf, label = ann_scatter), size = 3, hjust = 1.05, vjust = 1) +
+    facet_wrap(~feature, ncol = 2, scales = "free_y") +
+    scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.5)), 
+                       labels = scales::percent_format(accuracy = 0.01)) +   
+    labs(x = "qPCR immune response (PC1)", y = "Relative abundance") +  
+    theme_cowplot() +
+    scale_fill_brewer(palette = "Dark2")
+```
+
+#### qPCR_barrier_function
+Make scatter plot for PC1 of barrier function relevant genes, color points by SampleOrigin. Note that as the PC1 increases, the expression levels of barrier function relevant genes decrease (see PCA biplot above). Hence, a positive coefficient from the MaAsLin2 outputs is indicative of negative correlation between the microbial clades and expression levels of barrier function relevant genes, and vice versa.
+```{r scatter_plot_barr, fig.height=6, fig.width=9}
+filter(tab_sigAss, metadata == "qPCR_barrier_function" ) %>%
+  ggplot(aes(x = qPCR_barrier_function, y = abundance)) +
+    geom_point(aes(colour = Sample_origin), size = 2) +
+    geom_text(aes(x = Inf, y = Inf, label = ann_scatter), size = 3, hjust = 1.05, vjust = 1) +
+    facet_wrap(~feature, ncol = 2, scales = "free_y") +
+    scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.5)), 
+                       labels = scales::percent_format(accuracy = 0.01)) +   
+    labs(x = "qPCR barrier function (PC1)", y = "Relative abundance") +  
+    theme_cowplot() +
+    scale_fill_brewer(palette = "Dark2")
+```
+
+## Highlight MaAsLin2 outputs
+Highlights of diet effects
+```{r highlights_diet}
+p_diet <- sigAss_diet %>% 
+  filter(feature %in% c("Bacillus", "Corynebacterium 1", "Enterococcus", "Oceanobacillus")) %>%
+  ggplot(aes(x = Diet, y = abundance)) +
+    geom_boxplot(outlier.shape = NA, width = 0.3) +
+    geom_jitter(aes(colour = Sample_origin), shape = 16, position = position_jitter(0.1)) +
+    geom_text(aes(x = Inf, y = Inf, label = ann_boxplot), size = 3, hjust = 1.05, vjust = 1) +
+    facet_wrap(~feature, ncol = 2, scales = "free_y") +
+    scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.6)),
+                       labels = scales::percent_format(accuracy = 1)) +  
+    scale_color_manual(values = brewer.pal(n = 8, name = "Dark2")[c(1,2)]) +
+    labs(color = "Sample origin", y = "Relative abundance") +
+    theme_bw() +
+    theme(strip.text = element_text(face = "bold.italic"),
+          legend.margin = margin(0, 0, 0, 0),
+          legend.box.margin = margin(-5, -5, -5, -5))
+p_diet
+```
+
+Highlights of sample origin effects
+```{r highlights_origin}
+p_origin <- sigAss_origin %>% 
+  filter(feature %in% c("Photobacterium", "Mycoplasma", "Brevinema andersonii", "f__Spirochaetaceae")) %>%
+  mutate(labs = ifelse(grepl("__", feature), paste0("bold(", feature, ")"), paste0("bolditalic(", feature, ")")),
+         labs = gsub("\\s+", "~", labs)) %>%
+  mutate(feature = factor(feature, labels = unique(labs))) %>%
+  ggplot(aes(x = Sample_origin, y = abundance)) +
+  geom_boxplot(outlier.shape = NA, width = 0.3) +
+  geom_jitter(aes(colour = Diet), shape = 16, position = position_jitter(0.1)) +
+  geom_text(aes(x = Inf, y = Inf, label = ann_boxplot), size = 3, hjust = 1.05, vjust = 1) +
+  facet_wrap(~feature, ncol = 2, scales = "free_y",
+             labeller = label_parsed) +
+  scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.5)), 
+                     breaks = 0:5*0.2, labels = scales::percent_format(accuracy = 1)) +
+  scale_color_manual(values = brewer.pal(n = 8, name = "Dark2")[c(3,4)]) +
+  labs(x = "Sample origin", y = "Relative abundance") + 
+  theme_bw() +
+  theme(legend.margin = margin(0, 0, 0, 0),
+        legend.box.margin = margin(-5, -5, -5, -5))
+
+p_origin
+```
+
+Assemble plots
+```{r assemble_fig6, fig.height=10, fig.width=9}
+# Assemble ggplots
+ind <- plot_grid(p_diet, p_origin, align = "v", ncol = 1, labels = c("B", "C"))
+
+# Convert the heatmap (made by the ComplexHeatmap) into a "grob" object
+hmp_grob <- grid.grabExpr(draw(hmp, heatmap_legend_side = "left")) 
+
+# Combine the heatmap and ggplots
+plot_grid(hmp_grob,
+          ind, 
+          rel_widths = c(1, 1.5),
+          labels = c("A", ""),
+          ncol = 2) 
+
+# Export the assembled plot
+ggsave(here("result", "figures", "Figure 6.tiff"), width = 9, height = 10,
+       units = "in", dpi = 300, compression = "lzw")
+```
+# Session information
+```{r session-info}
+sessionInfo()
+```

@@ -1,0 +1,349 @@
+---
+title: "Beta-diversity visualization"
+author: Yanxian Li
+date: "`r Sys.time()`"
+output: 
+  html_document: 
+    self_contained: true
+    toc: true
+    toc_float: true
+    toc_depth: 3
+  pdf_document: 
+    latex_engine: xelatex
+  word_document: default
+---
+
+<style>
+pre code, pre, code {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+  word-break: keep-all !important;
+  word-wrap: initial !important;
+}
+</style>
+
+```{r style, echo=FALSE, message=FALSE, warning=FALSE, results="asis"}
+library(knitr)
+options(width=150) 
+opts_chunk$set(message=FALSE, error=FALSE, warning=FALSE)
+```
+
+# Getting ready
+Load packages
+```{r load-package}
+library(here) # [CRAN] A replacement for 'file.path()', locating the files relative to the project root
+library(tidyverse) # [CRAN] Easily install and load the 'Tidyverse'   
+library(RColorBrewer) # [CRAN] ColorBrewer Palettes
+library(cowplot)  # [CRAN] Streamlined plot theme and plot annotations for 'ggplot2' 
+library(plotly) # [CRAN] Create interactive web graphics via 'plotly.js'
+library(phyloseq) # [Bioconductor] Handling and analysis of high-throughput microbiome census data 
+library(philr) # [Bioconductor] Phylogenetic partitioning based ILR transform for metagenomics data
+library(ape) # [CRAN] Analyses of phylogenetics and evolution
+library(vegan) # [CRAN] Community ecology package 
+
+# Set seed
+set.seed(1910)
+```
+
+Load data
+```{r load-data}
+load(here("data", "processed", "phyloseq.RData"))
+load(here("data", "processed", "beta-diversity_distance.RData"))
+load(here("data", "processed", "beta-diversity_ordination.RData"))
+
+# Extract metadata from the phyloseq object
+metadata <- data.frame(sample_data(physeq), check.names = FALSE)
+```
+
+# Ordination
+As beta-diversity metrics are sensitive to differences in the sequencing depth of samples, a common way to mitagete this problem is to rarefy the feature table, i.e., downsample count data to the lowest count in the dataset. However, rarefying results in loss of sequence data and throws away samples with extremely low sequence counts. Alternative approaches for normaizing library sizes have been proposed [(McMurdie et al., 2014)](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003531), such as DESeq2’s variance stabilization technique [(Love et al., 2014)](https://www.ncbi.nlm.nih.gov/pubmed/25516281) and metagenomeSeq’s CSS [(Paulson et al., 2013)](https://www.nature.com/articles/nmeth.2658)). While these alternative methods showed promising results, they are not reccomended for presence/absence metrics, such as Jaccard or unweighted UniFrac, as the resulting ordination may be distorted. For the presence/absence metrics, rarefying is the best solution at present. [(Weiss et al., 2017)](https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-017-0237-y)). 
+
+Another apporach to get around the issue of differential sequencing depth is to analyze the microbiome sequence data using compositional data analysis approaches. Microbiome sequence data are compositional, i.e., they are represented by relative abundances or proportions which individually carry no meaning
+for the absolute abundance of a specific feature [(Aitchison, 1986)](https://www.jstor.org/stable/2345821?seq=1#metadata_info_tab_contents). Applying standard statistical tools, such as *t*-test, Wilcoxon rank-sum test, *ANOVA* and Pearson correlation coefficient, directly to compositional data produces spurious resutls. The first step of compositional data analysis is to convert the relative abundances of each part, or the values in the table of counts for each part, to ratios between all parts, such that existing statistical methods may be applied without introducing spurious conclusions [(Gloor et al., 2017)](https://www.frontiersin.org/articles/10.3389/fmicb.2017.02224/full). Commonly used data transformation include centered log-ratio transformation (CLR) and isometric log-ration transformation (ISL), during which the differences in the library sizes are cancelled out. This means that all the samples and sequence data are used without having to fit a distribution model to the data. Recently developed methods for beta-diversity analysis that take into account the compositional nature of the microbiome sequence data include PhILR and roboust Aitchison PCA.
+
+In this section, both unweighted (presence/absence) and weighted metrics, computed from rarefied and unrarefied feature table respectively, will be used for ordination.
+
+## PCoA of Jaccard distance
+Extract principal coordinates and variance explained for plotting.
+```{r prep_jac}
+pco_jac <- ord_jac$data$Vectors %>%
+  full_join(., rownames_to_column(metadata, "SampleID"), by = "SampleID")
+
+labs_jac <- paste0("PCo", 1:ncol(ord_jac$data$ProportionExplained), ": ", 
+                   round(100*ord_jac$data$ProportionExplained, 1), "%")
+```
+
+### 2D plot
+```{r pcoa_jac_2d}
+p_jac <- ggplot(pco_jac, aes(x = PC1, y = PC2, color = SampleType)) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  geom_point(size = 4) +
+  labs(title = "PCoA of Jaccard distance", color = "Sample type",
+       x = labs_jac[1],
+       y = labs_jac[2]) +
+  scale_color_manual(values = brewer.pal(n = 12, name = "Paired")[c(2,1,8,7)]) +
+  theme_cowplot() +
+  panel_border(colour = "black")
+
+p_jac
+```
+
+### Interactive 3D plot
+```{r pcoa_jac_3d}
+plot_ly(x = pco_jac[,"PC1"], y = pco_jac[,"PC2"], z = pco_jac[,"PC3"], 
+        type = "scatter3d", mode = "markers", color = metadata$SampleType, 
+        colors = brewer.pal(n = 12, name = "Paired")[c(2,1,8,7)]) %>%
+        layout(scene = list(xaxis = list(title = labs_jac[1]),
+                            yaxis = list(title = labs_jac[2]),
+                            zaxis = list(title = labs_jac[3])
+                        ))
+```
+
+## PCoA of Unweighted-UniFrac distance
+Extract principal coordinates and variance explained for plotting.
+```{r prep_uwuf}
+pco_uwuf <- ord_uwuf$data$Vectors %>%
+  full_join(., rownames_to_column(metadata, "SampleID"), by = "SampleID")
+
+labs_uwuf <- paste0("PCo", 1:ncol(ord_uwuf$data$ProportionExplained), ": ", 
+                   round(100*ord_uwuf$data$ProportionExplained, 1), "%")
+```
+
+### 2D plot
+```{r pcoa_uwuf_2d}
+p_uwuf <- ggplot(pco_uwuf, aes(x = PC1, y = PC2, color = SampleType)) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  geom_point(size = 4) +
+  labs(title = "PCoA of unweighted-UniFrac distance", color = "Sample type",
+       x = labs_uwuf[1],
+       y = labs_uwuf[2]) +
+  scale_color_manual(values = brewer.pal(n = 12, name = "Paired")[c(2,1,8,7)]) +
+  theme_cowplot() +
+  panel_border(colour = "black")
+
+p_uwuf
+```
+
+### Interactive 3D plot
+```{r pcoa_uwuf_3d}
+plot_ly(x = pco_uwuf[,"PC1"], y = pco_uwuf[,"PC2"], z = pco_uwuf[,"PC3"], 
+        type = "scatter3d", mode = "markers", color = metadata$SampleType, 
+        colors = brewer.pal(n = 12, name = "Paired")[c(2,1,8,7)]) %>%
+        layout(scene = list(xaxis = list(title = labs_uwuf[1]),
+                            yaxis = list(title = labs_uwuf[2]),
+                            zaxis = list(title = labs_uwuf[3])
+                        ))
+```
+
+## Roboust Aitchison PCA
+Roboust Aitchison PCA (RPCA) is a compositional beta diversity metric rooted in a centered log-ratio transformation and matrix completion [(Martino et al., 2019)](https://msystems.asm.org/content/4/1/e00016-19). Aitchison distance was used as the distance metric in the roboust Aitchison PCA for its desirable properties: 1)scale invariant, which ensures equivalence between distances computed from absolute and relative abundance measurements, negating the need to perform rarefaction; 2)relative changes driven. Microbes that display large fold change across samples will be weighted more heavily, which makes the ordination roboust to random fluctuations of high-abundant taxa; 3)subcompositionally coherent, which guarantees that distances will never decrease if additional taxa are observed. HOwever, Aitchison distance cannot handle zeros and is thus challenging to apply to the sparse microbiome data. To circumvent this issue, RPCA treats all zeros as missing values and builds a model to handle this missing data using matrix completion. 
+
+Note that RPCA is not exactly performing PCA. It is performing PCoA using the Aitchison distance, which is calculated from the Euclidean distance of the clr-transformed data. Since PCoA with Euclidean distance is equivalent to PCA, the method is called PCA though it's in fact running PCoA.
+
+Extract principal coordinates and variance explained for plotting.
+```{r prep_aitchison}
+pco_aitchison <- ord_aitchison$data$Vectors %>%
+  full_join(., rownames_to_column(metadata, "SampleID"), by = "SampleID")
+
+labs_aitchison <- paste0("PCo", 1:ncol(ord_aitchison$data$ProportionExplained), ": ", 
+                         round(100*ord_aitchison$data$ProportionExplained, 1), "%")
+```
+
+### 2D plot
+```{r pcoa_aitchison_2d}
+p_aitchison <- ggplot(pco_aitchison, aes(x = PC1, y = PC2, color = SampleType)) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  geom_point(size = 4) +
+  labs(title = "Robust Aitchison PCA", color = "Sample type",
+       x = labs_aitchison[1],
+       y = labs_aitchison[2]) +
+  scale_color_manual(values = brewer.pal(n = 12, name = "Paired")[c(2,1,8,7)]) +
+  theme_cowplot() +
+  panel_border(colour = "black")
+
+p_aitchison
+```
+
+### Interactive 3D plot
+```{r pcoa_aitchison_3d}
+plot_ly(x = pco_aitchison[,"PC1"], y = pco_aitchison[,"PC2"], z = pco_aitchison[,"PC3"], 
+        type = "scatter3d", mode = "markers", color = metadata$SampleType, 
+        colors = brewer.pal(n = 12, name = "Paired")[c(2,1,8,7)]) %>%
+        layout(scene = list(xaxis = list(title = labs_aitchison[1]),
+                            yaxis = list(title = labs_aitchison[2]),
+                            zaxis = list(title = labs_aitchison[3])
+                        ))
+```
+
+## PCoA of Euclidean distance calculated on PhILR transformed data
+PhILR is short for "Phylogenetic Isometric Log-Ratio Transform". The goal of PhILR is to transform compositional data into an orthogonal unconstrained space (real space) with phylogenetic / evolutionary interpretation while preserving all information contained in the original composition. For a given set of samples consisting of measurements of taxa, we transform data into a new space of  samples and  orthonormal coordinates termed ‘balances’. Each balance is associated with a single internal node  of a phylogenetic tree with the taxa as leaves. The balance represents the log-ratio of the geometric mean abundance of the two groups of taxa that descend from the given internal node. More details on this method can be found in the paper ["A phylogenetic transform enhances analysis of compositional microbiota data"](https://elifesciences.org/content/6/e21887). 
+
+### Filter and transform the feature table
+In the original paper and *PhILR* pakcage tutorial, taxa that were not seen with more than 3 counts in at least 20% of samples or with a coefficient of variation ≤ 3 were filtered. For the present data set, we'll not do data filtering as it results in great loss of data. We'll just add a pseudocount of 1 to the feature table to avoid calculating log-ratios involving zeros. 
+
+```{r transform_physeq, message=FALSE, warning=FALSE}
+#physeq <- filter_taxa(physeq, function(x) sum(x > 3) > (0.2 * length(x)), TRUE)
+#physeq <- filter_taxa(physeq, function(x) sd(x)/mean(x) > 3.0, TRUE)
+physeq <- transform_sample_counts(physeq, function(x) x + 1)
+```
+
+### Process phylogenetic tree
+Next we check that the tree is rooted and binary (all multichotomies have been resolved). 
+```{r check_tree, message=FALSE, warning=FALSE}
+is.rooted(phy_tree(physeq)) # Is the tree Rooted?
+is.binary.tree(phy_tree(physeq)) # All multichotomies resolved?
+```
+
+As the tree is not binary, we use the function `multi2di` from the `ape` package to replace multichotomies with a series of dichotomies with one (or several) branch(es) of zero length. 
+```{r make_binary_tree, message=FALSE, warning=FALSE}
+phy_tree(physeq) <- multi2di(phy_tree(physeq)) 
+is.binary.tree(phy_tree(physeq)) 
+```
+
+Now we name the internal nodes of the tree so they are easier to work with. We prefix the node number with `n` and thus the root is named `n1`. 
+
+```{r add_prefix, message=FALSE, warning=FALSE}
+phy_tree(physeq) <- makeNodeLabel(phy_tree(physeq), method = "number", prefix = 'n')
+```
+
+We note that the tree is already rooted with Bacteria as the outgroup and no multichotomies are present. This uses the function `name.balance` from the `philr` package. This function uses a simple voting scheme to find a consensus naming for the two clades that descend from a given balance. Specifically for a balance named `x/y`, `x` refers to the consensus name of the clade in the numerator of the log-ratio and `y` refers to the denominator. 
+```{r check_branch_name}
+name.balance(phy_tree(physeq), tax_table(physeq), 'n1')
+```
+
+### Investigate dataset components
+Finally we transpose the ASV table (`philr` uses the conventions of the `compositions` package for compositional data analysis in R, taxa are columns, samples are rows). Then we will take a look at part of the dataset in more detail.
+```{r check_objects}
+table_philr <- t(otu_table(physeq))
+table_philr[1:2,1:2] 
+
+tree <- phy_tree(physeq)
+tree 
+```
+
+### Transform data using PhILR
+The function `philr::philr()` implements a user friendly wrapper for the key steps in the philr transform. 
+
+1. Convert the phylogenetic tree to its sequential binary partition (SBP) representation using the function `philr::phylo2sbp()`
+2. Calculate the weighting of the taxa (aka parts) or use the user specified weights
+3. Built the contrast matrix from the SBP and taxa weights using the function `philr::buildilrBasep()`
+4. Convert ASV table to relative abundance (using `philr::miniclo()`) and 'shift' dataset using the weightings via the function `philr::shiftp()`.
+5. Transform the data to PhILR space using the function `philr::ilrp()`
+6. (Optional) Weight the resulting PhILR space using phylogenetic distance. These weights are either provided by the user or can be calculated by the function `philr::calculate.blw()`. 
+
+Note: The preprocessed ASV table should be passed to the function `philr::philr()` before it is closed (normalized) to relative abundances, as some of the preset weightings of the taxa use the original count data to down weight low abundance taxa. 
+
+Here we will use the same weightings as used in the original paper.
+
+```{r add_weightings}
+philr <- philr(table_philr, tree, part.weights = 'enorm.x.gm.counts', ilr.weights = 'blw.sqrt')
+philr[1:5,1:5]
+```
+
+Now the transformed data is represented in terms of balances and since each balance is associated with a single internal node of the tree, we denote the balances using the same names we assigned to the internal nodes (e.g., `n1`). 
+
+### Ordination in PhILR space
+Euclidean distance in PhILR space can be used for ordination analysis. First we compute the Euclidean distance and run PCoA using the `ordinate()` function from the *phyloseq* package.
+```{r compute_pcoa_philr}
+# Compute Euclidean distance on PhILR transformed data
+dist_philr <- dist(philr, method = "euclidean")
+
+# Ordination by PCoA
+ord_philr <- ordinate(physeq, 'PCoA', distance = dist_philr)
+```
+
+Extract principal coordinates and variance explained for plotting.
+```{r prep_philr}
+pco_philr <- as.data.frame(ord_philr$vectors) %>%
+  rownames_to_column("SampleID") %>%
+  full_join(., rownames_to_column(metadata, "SampleID"), by = "SampleID") 
+
+labs_philr <- paste0("PCo", 1:length(ord_philr$values$Eigenvalues), ": ", 
+                     round((100*ord_philr$values$Eigenvalues/sum(ord_philr$values$Eigenvalues)),1), "%")
+```
+
+### 2D plot
+```{r pcoa_philr_2d}
+p_philr <- ggplot(pco_philr, aes(x = Axis.1, y = Axis.2, color = SampleType)) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  geom_point(size = 4) +
+  labs(title = "PCoA of PhILR transformed data", color = "Sample type",
+       x = labs_philr[1],
+       y = labs_philr[2]) +
+  scale_color_manual(values = brewer.pal(n = 12, name = "Paired")[c(2,1,8,7)]) +
+  theme_cowplot() +
+  panel_border(colour = "black") 
+
+p_philr
+```
+
+### Interactive 3D plot
+```{r pcoa_philr_3d}
+plot_ly(x = pco_philr[,"Axis.1"], y = pco_philr[,"Axis.2"], z = pco_philr[,"Axis.3"], 
+        type = "scatter3d", mode = "markers", color = metadata$SampleType, 
+        colors = brewer.pal(n = 12, name = "Paired")[c(2,1,8,7)]) %>%
+        layout(scene = list(xaxis = list(title = labs_philr[1]),
+                            yaxis = list(title = labs_philr[2]),
+                            zaxis = list(title = labs_philr[3])
+                        ))
+```
+
+
+## Assemble plots
+```{r assemble_pcoa_plots, fig.width=10, fig.height=6}
+# Get legend
+legend <- get_legend(p_jac)
+
+# Assemble ordination plots
+ps <- plot_grid(
+  p_jac + geom_point(size = 2) + theme(legend.position = "none", plot.title = element_blank()), 
+  p_uwuf + geom_point(size = 2) + theme(legend.position = "none", plot.title = element_blank()),
+  p_aitchison + geom_point(size = 2) + theme(legend.position = "none", plot.title = element_blank()), 
+  p_philr + geom_point(size = 2) + theme(legend.position = "none", plot.title = element_blank()),
+  ncol = 2, labels = "AUTO", align = 'vh')
+
+# Add legend to the assembled plot
+plot_grid(ps, legend, rel_widths = c(6, 1))
+
+# Export the plot
+ggsave(here("result", "figures", "Figure 5.tiff"), width = 10, height = 6,
+       units = "in", dpi = 300, compression = "lzw")
+```
+
+# PERMANVOA
+We'll need to run two-way PERMANOVA with 2 nested random effects. Unfortunately, we have not found solutions on how to do this using the `adonis()` function from the *vegan* package. We'll export the distance matrices and run PERMANOVA using the PERMANOVA+ add-on in [PRIMER v7](https://www.primer-e.com/our-software/permanova-add-on/).
+```{r export_dist_matrices, results='hide'}
+# Make a list of distance matrices
+dist <- list(dist_jac, dist_uwuf, dist_aitchison, dist_philr)
+names(dist) <- c("dist_jac", "dist_uwuf", "dist_aitchison", "dist_philr")
+
+# Export distance matrices
+lapply(
+  seq_along(dist), 
+  function(x) 
+  {
+  # Export PHILR distance directly
+  if(grepl("philr", names(dist)[x])){
+    write.table(as.data.frame(as.matrix(dist[[x]])), 
+                here("data", "processed", paste0(names(dist)[x], ".tsv")), 
+                sep = "\t", col.names = NA, row.names = TRUE)
+  } else {
+  # For the other distance matrices: extract distance matrix firt, then export  
+    write.table(as.data.frame(as.matrix(dist[[x]]$data)), 
+                here("data", "processed", paste0(names(dist)[x], ".tsv")), 
+                sep = "\t", col.names = NA, row.names = TRUE)} 
+  }
+)
+```
+
+# Acknowledgements
+The *PhILR* codes are based on the package viggette written by Justin D Silverman.
+
+# Session information
+```{r session-info}
+sessionInfo()
+```

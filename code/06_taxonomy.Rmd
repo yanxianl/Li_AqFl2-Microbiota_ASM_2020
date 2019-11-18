@@ -54,7 +54,7 @@ load(here("data", "processed", "phyloseq.RData"))
 
 # Extract feature table, taxonomy and metadata from the phyloseq object
 count_tab <- as.data.frame(otu_table(physeq)) 
-tax_tab <- as.data.frame(tax_table(physeq)) 
+tax_tab <- tax_table(physeq) %>% as("matrix") %>% as.data.frame()
 metadata <- data.frame(sample_data(physeq), check.names = FALSE)
 ```
 
@@ -129,7 +129,7 @@ p_mock <- ggplot(mock_merged, aes(type, abundance)) +
   annotate("segment", x = 1.6, xend = 3.4, y = 102, yend = 102) +
   annotate("text", x = c(1, 2.5), y = c(105, 105), label = c("Expected", "Observed"), size = 5) +
   scale_y_continuous(limits = c(0, 105), breaks = 0:10*10, expand = expand_scale(mult = c(0, 0.05))) +
-  labs(x = "Sample ID", y = "Relative abundance (%)", fill = "Taxa (expected/observed)") +
+  labs(x = "", y = "Relative abundance (%)", fill = "Taxa (expected (Gram stain) / observed)") +
   scale_fill_manual(values = brewer.pal(8, "Paired"), labels = labs_mock) +
   theme_cowplot() +
   theme(panel.grid.major.y = element_line(size = 0.5, linetype = 'dashed', colour = "black"),
@@ -190,10 +190,10 @@ p_neg <- slice(tab_neg, 1:10) %>% # select the top 10 most abundance taxa for pl
   ggplot(aes(SampleID, abundance)) + 
   geom_bar(aes(fill = taxonomy), stat = "identity") + 
   annotate("segment", x = c(0.6, 4.6), xend = c(4.4, 6.4), y = c(102, 102), yend = c(102,102)) +
-  annotate("text", x = c(2.5, 5.5), y = c(105, 105), 
-           label = c("Extraction blank", "Library blank"), size = 5) +
+  annotate("text", x = c(2.5, 5.5), y = c(105, 105), size = 5,
+           label = c("Extraction blank", "Library blank")) +
   scale_y_continuous(limits = c(0, 105), breaks = 0:10*10, expand = expand_scale(mult = c(0, 0.05))) +
-  labs(x = "Sample ID", y = "Relative abundance (%)", fill = "Taxa") +
+  labs(x = "", y = "Relative abundance (%)", fill = "Taxa") +
   scale_fill_manual(values = brewer.pal(10, "Paired"),
                     guide = guide_legend(label.theme = element_text(face = "italic"))) +
   theme_cowplot() +
@@ -225,13 +225,27 @@ tab_phy <- Summarize.Taxa(count_tab, tax_tab)$Phylum %>%
 Make taxa barplot
 ```{r}
 # Plot taxa on individual basis
-p_phy_ind <- make_taxa_barplot(count_table = tab_phy, metadata = metadata, ntaxa = 10,
-                               group = SampleType,  plot_mean = F) 
-
+p_phy_ind <- make_taxa_barplot(table = tab_phy, 
+                               metadata = metadata, 
+                               group_by = SampleType, 
+                               ntaxa = 10,
+                               nrow = 1,
+                               plot_mean = FALSE, 
+                               cluster_sample = TRUE,
+                               sample_label = FishID,
+                               italize_taxa_name = FALSE)
 # Plot taxa using group means
-p_phy_mean <- make_taxa_barplot(count_table = tab_phy, metadata = metadata, ntaxa = 10,
-                                group = SampleType,  plot_mean = T) + 
-                                labs(x = "", y = "")
+p_phy_mean <- make_taxa_barplot(table = tab_phy, 
+                                metadata = metadata, 
+                                group_by = SampleType, 
+                                ntaxa = 10,
+                                nrow = 1,
+                                plot_mean = TRUE, 
+                                cluster_sample = FALSE,
+                                #sample_label = FishID,
+                                italize_taxa_name = FALSE)
+                                
+p_phy_mean <- p_phy_mean + labs(x = "", y = "")
 ```
 
 ## Summarize taxonomy at genus level 
@@ -259,12 +273,27 @@ tab_gen <- Summarize.Taxa(count_tab, tax_tab)$Genus %>%
 Make taxa barplot showing top 10 genera
 ```{r}
 # Plot taxa on individual basis
-p_gen_ind <- make_taxa_barplot(count_table = tab_gen, metadata = metadata, ntaxa = 10, 
-                               group = SampleType,  plot_mean = F) 
+p_gen_ind <- make_taxa_barplot(table = tab_gen, 
+                               metadata = metadata, 
+                               group_by = SampleType, 
+                               ntaxa = 10,
+                               nrow = 1,
+                               plot_mean = FALSE, 
+                               cluster_sample = TRUE,
+                               sample_label = FishID,
+                               italize_taxa_name = TRUE)
 # Plot taxa using group means
-p_gen_mean <- make_taxa_barplot(count_table = tab_gen, metadata = metadata, ntaxa = 10,
-                                group = SampleType,  plot_mean = T) +
-                                labs(x = "", y = "")
+p_gen_mean <- make_taxa_barplot(table = tab_gen, 
+                                metadata = metadata, 
+                                group_by = SampleType, 
+                                ntaxa = 10,
+                                nrow = 1,
+                                plot_mean = TRUE, 
+                                cluster_sample = TRUE,
+                                sample_label = FishID,
+                                italize_taxa_name = TRUE)
+                                
+p_gen_mean <- p_gen_mean + labs(x = "", y = "")
 ```
 
 ## Assemble taxa barplot 

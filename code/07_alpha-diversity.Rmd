@@ -42,7 +42,6 @@ library(microbiome) # [Bioconductor] Microbiome analytics
 library(picante) # [CRAN] Integrating phylogenies and ecology
 library(lmerTest) # [CRAN] Fits and tests in linear mixed effects models 
 library(ggResidpanel) # [CRAN] Panels and interactive versions of diagnostic plots using 'ggplot2'
-library(influence.ME) # [CRAN] Tools for detecting influential data in mixed effects models
 library(emmeans) # [CRAN] Post-hoc tests for fixed effects using least-squares means
 
 # Set seed
@@ -85,8 +84,8 @@ adiv <- inner_join(adiv_npd, adiv_pd, by = "SampleID") %>%
 # Plot alpha-diversity
 ```{r plot-adiv, fig.width = 10, fig.height = 6}
 p <- ggplot(adiv, aes(x = SampleType, y = value)) +
-  geom_boxplot(aes(fill = SampleType), outlier.shape = NA) +
-  geom_jitter(shape = 16, position = position_jitter(0.2)) +
+  geom_boxplot(aes(fill = SampleType), outlier.shape = NA, width = 0.5) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), alpha = 0.3) +
   facet_wrap(~adiv, nrow = 1, scales = "free_y") +
   scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.15))) +  
   scale_fill_manual(values = brewer.pal(n = 12, name = "Paired")[c(1,2,7,8)]) +
@@ -127,7 +126,7 @@ The updated models are not singular after removing the random effect `NetPen`. W
 
 ## Model diagnostics 
 Here we use the *ggResidpanel* package to produce a panel of plots for residual diagnostics.
-```{r resid_diag}
+```{r resid_diag, results='hide'}
 lapply(
   seq_along(lme), 
   function(x) 
@@ -152,44 +151,63 @@ fixef
 ```
 
 ## Conditional contrasts
-When interactions between main factors are included in the model, marginal means averaged over the levels of other covariates in the model can be misleading. A good practice is to specify conditional contrasts through the use of the `simple` argument to `contrast()`.
+When interactions between main factors are significant, marginal means averaged over the levels of other covariates in the model can be misleading. A good practice is to specify conditional contrasts through the use of the `simple` argument to `contrast()`.
 ```{r contracts_emmeans}
-# Compute estimated marginal means for factor combinations
-emm <- lapply(lme, function(x) emmeans(x, ~ Diet * SampleOrigin))
+# Filter alpha-diversity indices showing significant interactions between the main effects
+interact <- lapply(fixef, function(x) ifelse(x["Diet:SampleOrigin", "Pr(>F)"] < 0.05, TRUE, FALSE))
 
-# Conditional contrasts 
-ccomp <- lapply(emm, function(x) 
-                contrast(x, method = "consec", simple = "each", combine = TRUE, adjust = "mvt") %>%
-                summary())
-ccomp
+# Conditional contrasts
+cc <- mapply(function(x, y){
+  # Compute estimated marginal means 
+  emm <- emmeans(x, ~ Diet * SampleOrigin)
+
+  # Make conditional contrasts if the interaction is significant
+  if (y == TRUE){
+    contrast(emm, method = "consec", simple = "each", combine = TRUE, adjust = "mvt") %>%
+    summary()
+  }
+},
+  x = lme, 
+  y = interact
+)
+
+cc
 ```
 
 # Display effects
-## Gather *p* values 
+## *P*-value annotation: main effects 
+Gather and merge *p* values of the main effects.
 ```{r get_pval}
-# Gather p values of main effects
 p_fixef <- lapply(fixef, function(x) rownames_to_column(x, "term")) %>%
   bind_rows(.id = "adiv") %>%
-  rename(p_val = "Pr(>F)") %>%
-  mutate(p_val = formatC(p_val, format = "f", digits = 3),
-         p_val = paste0("p = ", p_val),
-         p_val = gsub("p = 0.000", "p < 0.001", p_val),
+  rename(pval = "Pr(>F)") %>%
+  mutate(pval = formatC(pval, format = "f", digits = 3),
+         # "==" gets handled as a "=" in R expressions
+         pval = paste0("p == ", pval),
+         pval = gsub("p == 0.000", "p < 0.001", pval),
          term = gsub("Diet:SampleOrigin", "Interaction", term),
-         term = gsub("SampleOrigin", "Sample origin", term),
-         label = paste0(term, ": ", p_val))
-  
-# Gather p values of conditional contrasts
-p_ccomp <- bind_rows(ccomp, .id = "adiv") 
+         # tilde (~) gets handled as a "space" in R expressions
+         term = gsub("SampleOrigin", "Sample~origin", term),
+         label = paste0(term, ": ", pval),
+         # use italic font for "p". Surround pattern by "\\b" for exact match
+         label = gsub("\\bp\\b", "italic(p)", label))
+```
+
+## *P*-value annotation: conditional contrasts
+Gather and merge *p* values of the conditional contrasts.
+```{r}
+# Gather p values
+p_cc <- bind_rows(cc, .id = "adiv") 
 
 # Make a dataframe for conditional p value annotation   
-anno1 <- filter(p_ccomp, SampleOrigin != ".") %>%
+anno1 <- filter(p_cc, SampleOrigin != ".") %>%
   mutate(SampleOrigin = gsub("Contents", "DIC", SampleOrigin),
          SampleOrigin = gsub("Mucosa", "DIM", SampleOrigin)) %>%
   separate(contrast, sep = " - ", c("start", "end")) %>%
   mutate(start = paste0(start, "-", SampleOrigin),
          end = paste0(end, "-", SampleOrigin))
   
-anno2 <- filter(p_ccomp, Diet != ".") %>%
+anno2 <- filter(p_cc, Diet != ".") %>%
   mutate(contrast = gsub("Contents", "DIC", contrast),
          contrast = gsub("Mucosa", "DIM", contrast)) %>%
   # the "end" comes before "start" because we need to use "REF-DIC" as the starting point
@@ -208,14 +226,14 @@ anno <- bind_rows(anno1, anno2) %>%
          p.value = ifelse(p.value >= 0.001 & p.value < 0.01, "**", p.value),
          p.value = ifelse(p.value >= 0.01 & p.value < 0.05, "*", p.value),
          p.value = ifelse(p.value >= 0.05, "NS", p.value),
-         # position of p value label on y axis 
-         y = c(180, 195, 210, 225, 0.88, 0.96, 1.04, 1.12, 3.5, 3.8, 4.1, 4.4, 22.5, 24.5, 26.5, 28.5),
+         # position of p value label on the y axis 
+         y = c(180, 195, 210, 225),
          # ensure alpha-diversity indices are plotted in the desired order
          adiv = factor(adiv, levels = c("Observed species", "Pielou's Evenness", "Shannon", "Faith's PD"))) 
 ```
 
 ## Annotate the plot
-```{r annotate_plot, fig.width = 10, fig.height = 10}
+```{r annotate_plot, fig.width = 9, fig.height = 11}
 # Make a list of alpha-diversity plots
 p_list <- lapply(
   as.list(levels(adiv$adiv)),
@@ -224,8 +242,8 @@ p_list <- lapply(
     # Make an inital plot
     p <- filter(adiv, adiv == x) %>%
       ggplot(aes(x = SampleType, y = value)) +
-      geom_boxplot(aes(fill = SampleType), outlier.shape = NA) +
-      geom_jitter(shape = 16, position = position_jitter(0.2)) +
+      geom_boxplot(aes(fill = SampleType), outlier.shape = NA, width = 0.5) +
+      geom_jitter(shape = 16, position = position_jitter(0.2), alpha = 0.3) +
       facet_wrap(~adiv, nrow = 1, scales = "free_y") +
       scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.15))) +  
       labs(x = "") +
@@ -234,12 +252,14 @@ p_list <- lapply(
       theme(axis.text.x = element_text(angle = 45, hjust = 1),legend.position = "none") 
     
     # Add p values of conditional contrasts to the plot
-    p <- p + geom_signif(data = filter(anno, adiv == x), 
-                         aes(xmin = start, xmax = end, annotations = p.value, y_position = y),
-                         map_signif_level = TRUE,
-                         tip_length = 0.01,
-                         textsize = 4, 
-                         manual = T)
+    if (grepl(x, levels(anno$adiv))) {
+      p <- p + geom_signif(data = filter(anno, adiv == x), 
+                           aes(xmin = start, xmax = end, annotations = p.value, y_position = y),
+                           map_signif_level = TRUE,
+                           tip_length = 0.01,
+                           textsize = 4, 
+                           manual = T)
+      }
     
     # Convert the table containing p values of main effects to a grid graphic
     tg <- filter(p_fixef, adiv == x) %>%
@@ -247,12 +267,13 @@ p_list <- lapply(
       # the following 2 lines of code remove rownames and column names
       as.matrix() %>%
       unname() %>%
-      tableGrob(theme = ttheme_minimal(core = list(fg_params = list(hjust = 0, x = 0.1)),
+      # set "parse=TRUE" to parse the plotmath expression
+      tableGrob(theme = ttheme_minimal(core = list(fg_params = list(hjust = 0, x = 0.1, parse = TRUE, cex = 0.8)),
                                        rowhead = list(fg_params = list(hjust = 0, x = 0))))
     
     # Assemble plots
     lab <- plot_grid(tg, NULL, labels = "", ncol = 1, rel_heights = c(1,2.5))
-    plot_grid(p, lab, labels = "", ncol = 2, rel_widths = c(2,1))
+    plot_grid(p, lab, labels = "", ncol = 2, rel_widths = c(1.9,1))
   }
 )
 
@@ -263,10 +284,10 @@ legend <- get_legend(p)
 prow <- plot_grid(plotlist = p_list, nrow = 2, align = 'v', axis = "l", labels = "")
 
 # Add legend to the assembled plot
-plot_grid(prow, legend, rel_widths = c(8, 1))
+plot_grid(prow, legend, rel_widths = c(6, 1))
 
 # Export figure
-ggsave(here("result", "figures", "Figure 4.tiff"), width = 10, height = 10,
+ggsave(here("result", "figures", "Figure 4.tiff"), width = 8, height = 10,
        units = "in", dpi = 300, compression = "lzw")
 ```
 

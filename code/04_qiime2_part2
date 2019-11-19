@@ -114,7 +114,7 @@ qiime feature-table filter-samples \
 qiime diversity alpha-rarefaction \
   --i-table data/qiime2/table-no-chlo-mito-lowPre-contam-ctrl-with-phyla.qza \
   --i-phylogeny data/qiime2/rooted-tree.qza \
-  --p-max-depth 20000 \
+  --p-max-depth 10000 \
   --p-steps 20 \
   --m-metadata-file data/metadata.tsv \
   --o-visualization data/qiime2/alpha-rarefaction.qzv

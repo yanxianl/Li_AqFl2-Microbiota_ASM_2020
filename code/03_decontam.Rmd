@@ -1,5 +1,5 @@
 ---
-title: "Screening of contaminant features"
+title: "Screening of Contaminating features"
 author: Yanxian Li
 date: "`r Sys.time()`"
 output: 
@@ -24,11 +24,13 @@ opts_chunk$set(message=FALSE, error=FALSE, warning=FALSE)
 library(here) # [CRAN] A replacement for 'file.path()', locating the files relative to the project root.
 library(tidyverse) # [CRAN] Easily Install and Load the 'Tidyverse' 
 library(cowplot) # [CRAN] # Streamlined Plot Theme and Plot Annotations for 'ggplot2' 
-library(ggstatsplot) # [CRAN] # 'ggplot2' Based Plots with Statistical Details  
+library(ggstatsplot) # [CRAN] # 'ggplot2' Based Plots with Statistical Details 
+
+set.seed(1910)
 ```
 
 # Introduction
-The screening will be based on two typical characteristics of contaminant sequences as outlined in the paper by [Davis et al. (2018)](https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-018-0605-2): they are likely to have frequencies that inversely correlate with sample DNA concentration and are likely to have higher prevalence in control samples than in true samples. The authors developed an R package, [*decontam*](https://github.com/benjjneb/decontam), for removing contaminant sequences in the marker-gene and metagenomics data. The package, however, does not make use of positive controls for the identification of contaminant sequences. As removing of features may heavily affect downstream analyses, we'll do it by manual screening based on the aforementioned principles.
+The screening will be based on two typical characteristics of Contaminating sequences as outlined in the paper by [Davis et al. (2018)](https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-018-0605-2): they are likely to have frequencies that inversely correlate with sample DNA concentration and are likely to have higher prevalence in control samples than in true samples. The authors developed an R package, [*decontam*](https://github.com/benjjneb/decontam), for removing Contaminating sequences in the marker-gene and metagenomics data. The package, however, does not make use of positive controls for the identification of Contaminating sequences. As removing of features may heavily affect downstream analyses, we'll do it by manual screening based on the aforementioned principles.
 
 # Import and tidy data 
 ## Metadata 
@@ -105,7 +107,7 @@ We'll use barplot to visualize the abundance and prevalence of the features foun
 tab_merged_spl <- split(tab_merged, f = tab_merged$featureID)
 
 # Make barplot for each feature
-pdf(here("data", "qiime2", "decontam", "taxa_barplot_unstacked.pdf"), width = 16, height = 10) 
+pdf(here("data", "qiime2", "decontam", "feature_prevalence.pdf"), width = 16, height = 10) 
 
 lapply(
   seq_along(tab_merged_spl), # add index to the elements in the list 
@@ -117,7 +119,7 @@ lapply(
       ggplot(aes(x = SampleID, y = abundance, fill = SampleType)) +
         geom_bar(stat = "identity", position = position_dodge()) +
         scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.1))) + 
-        labs(title = unique(tab_merged_spl[[x]][, "tax"]), y = "relative abundance (%)") +
+        labs(title = unique(tab_merged_spl[[x]][, "tax"]), y = "Relative abundance (%)") +
         scale_fill_brewer(palette = "Dark2", drop = F) +
         guides(fill = guide_legend(nrow = 1)) +
         theme_bw() +
@@ -154,21 +156,27 @@ We'll use Cq values from the qPCR assays as proxies of microbial DNA concentrati
 ## Cq values distribution
 Before we proceed with correlation analysis, we'll Check Cq values and see if they make sense. Normally, we expect lower Cq values for gut contents and mock, and higher Cq values for mucosa and negative controls.
 ```{r plot_Cq}
-set.seed(1910) # to get same jitters every time
 tab_merged %>% 
-  # Get Cq values from one of the features
+  # get Cq values from one of the features
   filter(featureID == unique(.$featureID)[1]) %>%
   drop_na(qPCRCqValue) %>%
+  # calculate mean Cq values for each sample type for text annotation
+  group_nest(SampleType) %>%
+  mutate(cq_mean = map_dbl(data, ~mean(.x$qPCRCqValue)), 
+         cq_mean = round(cq_mean, 1)) %>%
+  unnest() %>%
   ggplot(aes(x = SampleType, y = qPCRCqValue)) +
   geom_jitter(aes(colour = SampleType), shape = 16, position = position_jitter(0.1)) +
+  geom_label(aes(y = cq_mean, label = cq_mean), size = 3, nudge_x = 0.3) +
   # add mean plus/minus 1SD 
   stat_summary(fun.data = "mean_sdl", fun.args = list(mult = 1), geom = "pointrange") + 
-  labs(x = "", y = "Cq value", title = "Quantification of 16S rRNA gene by qPCR") +
-  theme_cowplot() +
-  scale_fill_brewer(palette = "Dark2") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  labs(x = "Sample type", y = "Cq value") +
+  scale_colour_brewer(palette = "Paired") +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
 
-ggsave(here("exploratory", "qPCR_Cq_values.pdf"), width = 6, height = 6, units = "in", dpi = 300)
+ggsave(here("result", "figures", "Figure S5.tiff"), width = 8, height = 5, 
+       units = "in", dpi = 300, compression = "lzw")
 ```
 
 Everything looks normal. We proceed to correlation analysis.
@@ -182,7 +190,7 @@ tab_merged <- filter(tab_merged, abundance != 0)
 tab_merged_spl <- split(tab_merged, f = tab_merged$featureID)
 
 # Make correlation plots
-pdf(here("data", "qiime2", "decontam", "correlation_analysis.pdf"), width = 16, height = 12) 
+pdf(here("data", "qiime2", "decontam", "correlation.pdf"), width = 16, height = 12) 
 
 lapply(
   seq_along(tab_merged_spl), # add index to elements in the list 
@@ -197,7 +205,7 @@ lapply(
       geom_point(aes(color = SampleType)) +
       geom_smooth(method = "lm") +
       scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.1))) + 
-      labs(x = "Cq value", y = "relative abundance (%)", title = "Correlation with all samples") +
+      labs(x = "Cq value", y = "Relative abundance (%)", title = "Correlation with all samples") +
       scale_fill_brewer(palette = "Dark2") +
       guides(colour = guide_legend(nrow = 1)) +
       theme_bw() +
@@ -220,7 +228,7 @@ lapply(
                          type = "spearman", # type of test that needs to be run
                          conf.level = 0.95, # confidence level
                          xlab = "Cq value", # label for x axis
-                         ylab = "relative abundance (%)", # label for y axis
+                         ylab = "Relative abundance (%)", # label for y axis
                          title = paste0("Correlation within the sample type: ", unique(x$SampleType)),
                          k = 3, # no. of decimal places in the results
                          marginal = F, # whether show ggExtra::ggMarginal() plots or not
@@ -234,7 +242,7 @@ lapply(
                          type = "spearman", 
                          conf.level = 0.95, 
                          xlab = "Cq value", 
-                         ylab = "relative abundance (%)", 
+                         ylab = "Relative abundance (%)", 
                          title = paste0("Correlation within the sample type: ", unique(x$SampleType)),
                          k = 3, 
                          marginal = F, 
@@ -252,8 +260,8 @@ lapply(
 dev.off() 
 ```
 
-# List of contaminant sequences 
-Based on the evaluation of the taxa bar plots, correlation plots and our prior knowledge of common contaminant taxa found in our lab, the following features are considered as contaminant sequences in the samples.
+# List of Contaminating sequences 
+Based on the evaluation of the taxa bar plots, correlation plots and our prior knowledge of common Contaminating taxa found in our lab, the following features are considered as Contaminating sequences in the samples.
 ```{r contam_sample}
 contam_sample <- tab_merged %>%
   select(featureID, tax) %>%
@@ -262,7 +270,7 @@ contam_sample <- tab_merged %>%
                              43,45,46,47,48,50,51,53,54,55,56,58,59,60,62,63,64,66,71,76,88,90,104))
 ```
 
-The mock, [ZymoBIOMICS D6300](https://www.zymoresearch.com/collections/zymobiomics-microbial-community-standards/products/zymobiomics-microbial-community-standard), comes with a guaranteed impurity level of < 0.01% (by DNA abundance). Therefore, as long as we observe any alien taxa present at > 0.01% in the mock, we can conclude that they are introduced during by the workflow. The following features are considered as contaminant features in the mock.
+The mock, [ZymoBIOMICS D6300](https://www.zymoresearch.com/collections/zymobiomics-microbial-community-standards/products/zymobiomics-microbial-community-standard), comes with a guaranteed impurity level of < 0.01% (by DNA abundance). Therefore, as long as we observe any alien taxa present at > 0.01% in the mock, we can conclude that they are introduced during by the workflow. The following features are considered as Contaminating features in the mock.
 ```{r contam_mock}
 contam_mock <- tab_merged %>%
   select(featureID, tax) %>%
@@ -271,19 +279,19 @@ contam_mock <- tab_merged %>%
                              52,53,54,55,56,58,59,60,61,62,63,64,65,66,67,69,71,73,74,76,85,88,90,91,92))                
 ```
 
-# Export contaminant sequence IDs
-Now we export the featureIDs of contaminant sequences for feature table filtering.
+# Export Contaminating sequence IDs
+Now we export the featureIDs of Contaminating sequences for feature table filtering.
 ```{r export_contam}
-# Contaminant features for samples
+# Contaminating features for samples
 write.table(contam_sample, 
-            file = here("data", "qiime2", "decontam", "contaminant-features-sample.tsv"), 
+            file = here("data", "qiime2", "decontam", "contaminants-sample.tsv"), 
             quote = FALSE, 
             sep = '\t',
             row.names = FALSE)
 
-# Contaminant features for the mock
+# Contaminating features for the mock
 write.table(contam_mock, 
-            file = here("data", "qiime2", "decontam", "contaminant-features-mock.tsv"), 
+            file = here("data", "qiime2", "decontam", "contaminants-mock.tsv"), 
             quote = FALSE, 
             sep = '\t',
             row.names = FALSE)

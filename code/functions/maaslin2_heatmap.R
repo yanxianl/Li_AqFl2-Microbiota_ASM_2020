@@ -12,7 +12,8 @@ maaslin2_heatmap <-
     data_label = "data",
     metadata_label = "metadata",
     title = TRUE,
-    legend = TRUE,
+    legend_title = TRUE,
+    legend_title_position = "topleft",
     color = c("blue", "grey90", "red"),
     board_line_col = "gray96",
     colnames_rotate = 90,
@@ -67,24 +68,24 @@ maaslin2_heatmap <-
     data <- df$feature
     value <- NA
     
-    if (legend == FALSE) {legend <- ""}
+    if (legend_title == FALSE) {legend_title <- ""}
     
     # values to use for coloring the heatmap
     # and set the colorbar boundaries
     if (cell_value == "pval") {
       value <- -log(df$pval) * sign(df$coef)
       value <- pmax(-20, pmin(20, value))
-      if (legend == TRUE)
-        legend <- "(-log(pval)*sign(coeff))"
+      if (legend_title == TRUE)
+        legend_title <- "-log(pval)*sign(coeff)"
     } else if (cell_value == "qval") {
       value <- -log(df$qval) * sign(df$coef)
       value <- pmax(-20, pmin(20, value))
-      if (legend == TRUE)
-        legend <- "(-log(qval)*sign(coeff))"
+      if (legend_title == TRUE)
+        legend_title <- "-log(qval)*sign(coeff)"
     } else if (cell_value == "coef") {
       value <- df$coef
-      if (legend == TRUE)
-        legend <- "coeff"
+      if (legend_title == TRUE)
+        legend_title <- "coeff"
     }
     
     n <- length(unique(data))
@@ -170,10 +171,10 @@ maaslin2_heatmap <-
     } else {
       row_lab <- rownames(mat1)
     }
-        
+    
     # plot heatmap
     p <- Heatmap(mat1, 
-                 name = legend, 
+                 name = legend_title, 
                  cluster_columns = FALSE,
                  #clustering_distance_columns = "euclidean",
                  #clustering_method_columns = "complete",
@@ -189,7 +190,7 @@ maaslin2_heatmap <-
                  rect_gp = gpar(col = board_line_col, lty = 1, lwd = 0.2), 
                  col = color,
                  heatmap_legend_param = list(legend_height = unit(4, "cm"),
-                                             title_position = "topcenter"),
+                                             title_position = legend_title_position),
                  cell_fun = function(j, i, x, y, width, height, fill) {
                    grid.text(mark[i, j], x, y, gp = gpar(fontsize = 10))
                  }

@@ -33,13 +33,15 @@ Load packages
 ```{r load-package}
 library(here) # [CRAN] A replacement for 'file.path()', locating the files relative to the project root
 library(tidyverse) # [CRAN] Easily install and load the 'Tidyverse'   
-library(cowplot)  # [CRAN] Streamlined plot theme and plot annotations for 'ggplot2' 
+library(cowplot)  # [CRAN] Streamlined plot theme and plot annotations for 'ggplot2'
+library(PerformanceAnalytics) # [CRAN] Collection of econometric functions for performance and risk analysis
 library(RColorBrewer) # [CRAN] ColorBrewer Palettes
 library(qiime2R) # [github::jbisanz/qiime2R] Import qiime2 artifacts to R 
 library(MicrobeR) # [github::jbisanz/MicrobeR] Handy functions for downstream visualization fo microbiome data
 library(microbiome) # [Bioconductor] Microbiome analytics
 library(phyloseq) # [Bioconductor] Handling and analysis of high-throughput microbiome census data 
 library(DT) # [CRAN] An R interface to the DataTables library
+library(gt) # [github::rstudio/gt] # Easily Create Presentation-Ready Display Tables
 library(venn) # [CRAN] Make Venn's diagram
 ```
 
@@ -103,15 +105,25 @@ Merge expected and observed mock composition
 ```{r}
 mock_merged <- bind_cols(mock_exp, mock_obs) %>%
   mutate(Gram_staining = c("(G+)", "(G+)", "(G+)", "(G+)", "(G+)", "(G-)", "(G-)", "(G-)"),
-         "tax" = paste(tax_exp, Gram_staining, "/", tax_obs)) %>%
-  select(tax, MOCK, MOCK1, MOCK2) %>%
-  mutate(tax = factor(.$tax, levels = unique(.$tax))) %>% # use the exact order of taxa for plotting
-  gather(key = "type", value = "abundance", -tax) %>%
-  mutate_if(is.numeric, ~(100 * .x)) # use percentage as unit for relative abundance
+         "taxa" = paste(tax_exp, Gram_staining, "/", tax_obs)) %>%
+  select(taxa, MOCK, MOCK1, MOCK2) %>%
+  mutate(taxa = factor(.$taxa, levels = unique(.$taxa))) %>% 
+  # use percentage as unit for relative abundance
+  mutate_if(is.numeric, ~(100 * .x)) %>% 
+  mutate_if(is.numeric, ~round(.x, 1))
+
+mock_merged %>%
+  rename("Taxa (expected / observed)" = taxa) %>%
+  datatable(options = list(columnDefs = list(list(className = 'dt-left', targets = c(0:4)))))
+```
+
+Make correlation plot
+```{r}
+chart.Correlation(mock_merged[,2:4], histogram = FALSE, pch = 19)
 ```
 
 Make stacked barplot
-```{r, fig.width=8}
+```{r}
 # use italic font for genus/species names in the legend
 labs_mock <- c(
   expression(paste(italic("Bacillus subtilis"), "(G+) / ", italic("Bacillus"))), 
@@ -124,14 +136,16 @@ labs_mock <- c(
   expression(paste(italic("Pseudomonas aeruginosa"), "(G-) / ", italic("Pseudomonas"))))
 
 # Make barplot
-p_mock <- ggplot(mock_merged, aes(type, abundance)) + 
-  geom_bar(aes(fill = tax), stat = "identity") + 
-  annotate("segment", x = 1.6, xend = 3.4, y = 102, yend = 102) +
-  annotate("text", x = c(1, 2.5), y = c(105, 105), label = c("Expected", "Observed"), size = 5) +
+p_mock <- mock_merged %>% 
+  gather(key = "type", value = "abundance", -taxa) %>%
+  ggplot(aes(type, abundance)) + 
+  geom_bar(aes(fill = taxa), stat = "identity", width = 0.5) + 
+  annotate("segment", x = 1.75, xend = 3.25, y = 102, yend = 102) +
+  annotate("text", x = c(1, 2.5), y = c(105, 105), label = c("Expected", "Observed"), size = 4) +
   scale_y_continuous(limits = c(0, 105), breaks = 0:10*10, expand = expand_scale(mult = c(0, 0.05))) +
   labs(x = "", y = "Relative abundance (%)", fill = "Taxa (expected (Gram stain) / observed)") +
   scale_fill_manual(values = brewer.pal(8, "Paired"), labels = labs_mock) +
-  theme_cowplot() +
+  theme_minimal() +
   theme(panel.grid.major.y = element_line(size = 0.5, linetype = 'dashed', colour = "black"),
         legend.justification = "top", # move legend to top right position 
         legend.text.align = 0) # align legend text to left
@@ -188,26 +202,25 @@ p_neg <- slice(tab_neg, 1:10) %>% # select the top 10 most abundance taxa for pl
   gather(key = "SampleID", value = "abundance", -taxonomy) %>%
   mutate(SampleID = gsub("AqFl2-EB", "EB", SampleID), SampleID = gsub("AqFl2-LB", "LB", SampleID)) %>%
   ggplot(aes(SampleID, abundance)) + 
-  geom_bar(aes(fill = taxonomy), stat = "identity") + 
-  annotate("segment", x = c(0.6, 4.6), xend = c(4.4, 6.4), y = c(102, 102), yend = c(102,102)) +
-  annotate("text", x = c(2.5, 5.5), y = c(105, 105), size = 5,
-           label = c("Extraction blank", "Library blank")) +
+  geom_bar(aes(fill = taxonomy), stat = "identity", width = 0.5) + 
+  annotate("segment", x = c(0.75, 4.75), xend = c(4.25, 6.25), y = c(102, 102), yend = c(102,102)) +
+  annotate("text", x = c(2.5, 5.5), y = c(105, 105), size = 4, label = c("Extraction blank", "Library blank")) +
   scale_y_continuous(limits = c(0, 105), breaks = 0:10*10, expand = expand_scale(mult = c(0, 0.05))) +
   labs(x = "", y = "Relative abundance (%)", fill = "Taxa") +
   scale_fill_manual(values = brewer.pal(10, "Paired"),
-                    guide = guide_legend(label.theme = element_text(face = "italic"))) +
-  theme_cowplot() +
+                    guide = guide_legend(label.theme = element_text(face = "italic", size = 9))) +
+  theme_minimal() +
   theme(panel.grid.major.y = element_line(size = 0.5, linetype = 'dashed', colour = "black"),
         legend.justification = "top") # move legend to top right position (default is on the right)
 p_neg
 ```
 
 ## Assemble plots 
-```{r, fig.width=8, fig.height=7}
+```{r, fig.width=6, fig.height=8}
 plot_grid(p_mock, p_neg, labels = "AUTO", ncol = 1) 
 
 # Export the assembled plot
-ggsave(here("result", "figures", "Figure 1.tiff"), width = 8, height = 10, 
+ggsave(here("result", "figures", "Figure 1.tiff"), width = 6, height = 8, 
        units = "in", dpi = 300, compression = "lzw")
 ```
 
@@ -308,7 +321,7 @@ plot_grid(p_phy_ind + theme(legend.position = "none"),
           rel_widths = c(3, 1, 3, 1)) 
 
 # Export the plot
-ggsave(here("result", "figures", "Figure 2.tiff"), width = 16, height = 10, 
+ggsave(here("result", "figures", "Figure 2.tiff"), width = 14, height = 10, 
        units = "in", dpi = 300, compression = "lzw")
 ```
 
@@ -333,9 +346,9 @@ core_taxa <- cbind.data.frame(prev_rDic, prev_rDim, prev_iDic, prev_iDim) %>%
   filter(prev_rDic >= 0.8|prev_rDim >= 0.8|prev_iDic >= 0.8|prev_iDim >= 0.8)
 ```
 
-Taxonomy of core features
+Add taxonomy to core features
 ```{r}
-rownames_to_column(tax_tab, "featureID") %>%
+core_taxa_tab <- rownames_to_column(tax_tab, "featureID") %>%
   inner_join(core_taxa, by = "featureID") %>%
   rename("REF-DIC" = prev_rDic, "REF-DIM" = prev_rDim, "IM-DIC" = prev_iDic, "IM-DIM" = prev_iDim) %>%
   mutate(prev_all = rowSums(.[9:12])) %>%
@@ -343,8 +356,29 @@ rownames_to_column(tax_tab, "featureID") %>%
   mutate_if(is.numeric, ~ifelse(.x == 1, 100, round(.x * 100, 1))) %>%
   mutate_if(is.numeric, ~paste0(.x, "%")) %>%
   mutate_if(is.factor, ~gsub("*.__|uncultured.*|Ambiguous.*|metagenome", "", .x)) %>%
-  select(-featureID, -Kingdom, -prev_all) %>%
-  datatable(options = list(columnDefs = list(list(className = 'dt-left', targets = c(0:7))))) 
+  select(-featureID, -Kingdom, -prev_all) 
+
+core_taxa_tab %>%
+  datatable(options = list(columnDefs = list(list(className = 'dt-left', targets = c(0:7)))))
+```
+
+```{r, include=FALSE}
+# Export core taxa table as Table S3
+core_taxa_tab %>%
+  gt() %>%
+  tab_header(title = "Table S3. The core taxa of digesta- and mucosa-associated 
+                      distal gut microbiota in Atlantic salmon fed different diets.") %>%
+  tab_spanner(label = "Taxonomy", columns = 1:6) %>%
+  tab_spanner(label = "Prevalence", columns = 7:ncol(.)) %>%
+  cols_align(align = "center") %>%
+  tab_source_note("The core taxa were computed using a prevalence threshold at 80%.") %>%
+  tab_source_note("Abbreviations: REF, reference diet; IM, insect meal diet; 
+                  DIC, distal intestine content; DIM, distal intestine mucosa.") %>%
+  # the top/bottom border color can't be modified
+  tab_style(style = list(cell_text(weight = "bold", size = 14), cell_borders(sides = "top", color = "white")),
+            locations = cells_title(groups = "title")) %>%
+  tab_options(table.font.size = 12, column_labels.font.size = 12, sourcenote.font.size = 12) %>%
+  gtsave(here("result", "tables", "Table S3.html"))
 ```
 
 Convert feature prevalence to boolean values for plotting Venn's diagram

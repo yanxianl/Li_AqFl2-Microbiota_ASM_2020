@@ -5,7 +5,7 @@
 qiime feature-table filter-features \
   --i-table data/qiime2/table-no-chlo-mito-lowPre-with-phyla.qza \
   --p-exclude-ids \
-  --m-metadata-file data/qiime2/decontam/contaminant-features-sample.tsv \
+  --m-metadata-file data/qiime2/decontam/contaminants-sample.tsv \
   --o-filtered-table data/qiime2/table-no-chlo-mito-lowPre-contam-with-phyla.qza
 
 #======================================================================================================================
@@ -71,7 +71,7 @@ qiime feature-table filter-samples \
 qiime feature-table filter-features \
   --i-table data/qiime2/mock-observed.qza \
   --p-exclude-ids \
-  --m-metadata-file data/qiime2/decontam/contaminant-features-mock.tsv \
+  --m-metadata-file data/qiime2/decontam/contaminants-mock.tsv \
   --o-filtered-table data/qiime2/mock-observed-no-contam.qza
 
 # Inspect taxonomic composition in the mock 

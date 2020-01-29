@@ -57,7 +57,7 @@ metadata <- data.frame(sample_data(physeq), check.names = FALSE)
 ```
 
 # Ordination
-As beta-diversity metrics are sensitive to differences in the sequencing depth of samples, a common way to mitagete this problem is to rarefy the feature table, i.e., downsample count data to the lowest count in the dataset. However, rarefying results in loss of sequence data and throws away samples with extremely low sequence counts. Alternative approaches for normaizing library sizes have been proposed [(McMurdie et al., 2014)](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003531), such as DESeq2’s variance stabilization technique [(Love et al., 2014)](https://www.ncbi.nlm.nih.gov/pubmed/25516281) and metagenomeSeq’s CSS [(Paulson et al., 2013)](https://www.nature.com/articles/nmeth.2658)). While these alternative methods showed promising results, they are not reccomended for presence/absence metrics, such as Jaccard or unweighted UniFrac, as the resulting ordination may be distorted. For the presence/absence metrics, rarefying is the best solution at present. [(Weiss et al., 2017)](https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-017-0237-y)). 
+As beta-diversity metrics are sensitive to differences in the sequencing depth of samples, a common way to mitagete this problem is to rarefy the feature table, i.e., downsample count data to the lowest count in the dataset. However, rarefying results in loss of sequence data and throws away samples with extremely low sequence counts. Alternative approaches for normaizing library sizes have been proposed [(McMurdie et al., 2014)](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003531), such as DESeq2’s variance stabilization technique [(Love et al., 2014)](https://www.ncbi.nlm.nih.gov/pubmed/25516281) and metagenomeSeq’s CSS [(Paulson et al., 2013)](https://www.nature.com/articles/nmeth.2658)). While these alternative methods showed promising results, they are not reccomended for presence/absence metrics, such as Jaccard or unweighted-UniFrac, as the resulting ordination may be distorted. For the presence/absence metrics, rarefying is the best solution at present. [(Weiss et al., 2017)](https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-017-0237-y)). 
 
 Another apporach to get around the issue of differential sequencing depth is to analyze the microbiome sequence data using compositional data analysis approaches. Microbiome sequence data are compositional, i.e., they are represented by relative abundances or proportions which individually carry no meaning
 for the absolute abundance of a specific feature [(Aitchison, 1986)](https://www.jstor.org/stable/2345821?seq=1#metadata_info_tab_contents). Applying standard statistical tools, such as *t*-test, Wilcoxon rank-sum test, *ANOVA* and Pearson correlation coefficient, directly to compositional data produces spurious resutls. The first step of compositional data analysis is to convert the relative abundances of each part, or the values in the table of counts for each part, to ratios between all parts, such that existing statistical methods may be applied without introducing spurious conclusions [(Gloor et al., 2017)](https://www.frontiersin.org/articles/10.3389/fmicb.2017.02224/full). Commonly used data transformation include centered log-ratio transformation (CLR) and isometric log-ration transformation (ISL), during which the differences in the library sizes are cancelled out. This means that all the samples and sequence data are used without having to fit a distribution model to the data. Recently developed methods for beta-diversity analysis that take into account the compositional nature of the microbiome sequence data include PhILR and roboust Aitchison PCA.
@@ -101,7 +101,7 @@ plot_ly(x = pco_jac[,"PC1"], y = pco_jac[,"PC2"], z = pco_jac[,"PC3"],
                         ))
 ```
 
-## PCoA of Unweighted-UniFrac distance
+## PCoA of unweighted-UniFrac distance
 Extract principal coordinates and variance explained for plotting.
 ```{r prep_uwuf}
 pco_uwuf <- ord_uwuf$data$Vectors %>%
@@ -402,11 +402,18 @@ permdisp_jac
 
 ### Visual inspection
 Boxplot showing the distances to centroid for each group 
-```{r boxplot_jac}
-boxplot(disp_jac, xlab = "Sample type", notch = TRUE, col = "lightblue")
+```{r boxplot_jac, fig.width=6, fig.height=4}
+bp_jac <- data.frame(dist = disp_jac$distances, group = disp_jac$group) %>%
+  ggplot(aes(x = group,y = dist)) +
+    geom_boxplot(fill = "lightblue") +
+    labs(x = "Sample type", y = "Distance to centroid", title = "Jaccard distance") +
+    theme_minimal(base_size = 14) +
+    theme(plot.title = element_text(hjust = 0.5))
+
+bp_jac
 ```
 
-## Unweighted Unifrac distance
+## Unweighted UniFrac distance
 ### PERMDISP
 ```{r permdisp_uwuf}
 # PERMDISP
@@ -419,8 +426,15 @@ permdisp_uwuf
 
 ### Visual inspection
 Boxplot showing the distances to centroid for each group 
-```{r boxplot_uwuf}
-boxplot(disp_uwuf, xlab = "Sample type", notch = TRUE, col = "lightblue")
+```{r boxplot_uwuf, fig.width=6, fig.height=4}
+bp_uwuf <- data.frame(dist = disp_uwuf$distances, group = disp_uwuf$group) %>%
+  ggplot(aes(x = group,y = dist)) +
+    geom_boxplot(fill = "lightblue") +
+    labs(x = "Sample type", y = "Distance to centroid", title = "Unweighted UniFrac distance") +
+    theme_minimal(base_size = 14) +
+    theme(plot.title = element_text(hjust = 0.5))
+
+bp_uwuf
 ```
 
 ## Aitchison distance
@@ -436,11 +450,18 @@ permdisp_aitchison
 
 ### Visual inspection
 Boxplot showing the distances to centroid for each group 
-```{r boxplot_aitchison}
-boxplot(disp_aitchison, xlab = "Sample type", notch = TRUE, col = "lightblue")
+```{r boxplot_aitchison, fig.width=6, fig.height=4}
+bp_aitchison <- data.frame(dist = disp_aitchison$distances, group = disp_aitchison$group) %>%
+  ggplot(aes(x = group,y = dist)) +
+    geom_boxplot(fill = "lightblue") +
+    labs(x = "Sample type", y = "Distance to centroid", title = "Aitchison distance") +
+    theme_minimal(base_size = 14) +
+    theme(plot.title = element_text(hjust = 0.5))
+
+bp_aitchison
 ```
 
-## Philr transformed euclidean distance
+## PHILR transformed euclidean distance
 ### PERMDISP
 ```{r permdisp_philr}
 # PERMDISP
@@ -453,11 +474,20 @@ permdisp_philr
 
 ### Visual inspection
 Boxplot showing the distances to centroid for each group 
-```{r boxplot_philr}
-boxplot(disp_philr, xlab = "Sample type", notch = TRUE, col = "lightblue") 
+```{r boxplot_philr, fig.width=6, fig.height=4}
+bp_philr <- data.frame(dist = disp_philr$distances, group = disp_philr$group) %>%
+  ggplot(aes(x = group,y = dist)) +
+    geom_boxplot(fill = "lightblue") +
+    labs(x = "Sample type", y = "Distance to centroid", 
+         title = "PHILR transformed Euclidean distance") +
+    theme_minimal(base_size = 14) +
+    theme(plot.title = element_text(hjust = 0.5))
+
+bp_philr
 ```
 
 ## Overview of PERMDISP
+### Table
 Here we gather and format PERMDISP results.
 ```{r export_permdisp}
 # Gather and format results
@@ -485,9 +515,23 @@ permdisp <- list(Jaccard = permdisp_jac, "Unweighted UniFrac" = permdisp_uwuf,
 permdisp
 ```
 
-```{r include=FALSE}
+```{r, include=FALSE}
 # Export PERMDISP results as Table 2
 gtsave(permdisp, here("result", "tables", "Table 2.html"))
+```
+
+### Boxplot
+Assemble boxplots
+```{r, fig.width=10, fig.height=6}
+bps <- plot_grid(bp_jac, bp_uwuf, bp_aitchison, bp_philr,
+                 ncol = 2, labels = "AUTO", align = 'vh')
+bps
+```
+
+```{r, include=FALSE}
+# Export the assembled boxplots
+ggsave(here("result", "figures", "Figure S6.tiff"), width = 10, height = 6,
+       units = "in", dpi = 300, compression = "lzw")
 ```
 
 # Acknowledgements

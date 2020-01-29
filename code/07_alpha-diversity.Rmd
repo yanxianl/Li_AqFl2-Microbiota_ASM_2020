@@ -90,7 +90,7 @@ p <- ggplot(adiv, aes(x = SampleType, y = value)) +
   scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.15))) +  
   scale_fill_manual(values = brewer.pal(n = 12, name = "Paired")[c(1,2,7,8)]) +
   labs(fill = "Sample type") +
-  theme_cowplot() +
+  theme_bw(base_size = 12) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 p
 ```
@@ -233,7 +233,7 @@ anno <- bind_rows(anno1, anno2) %>%
 ```
 
 ## Annotate the plot
-```{r annotate_plot, fig.width = 9, fig.height = 11}
+```{r annotate_plot, fig.width = 8, fig.height = 9}
 # Make a list of alpha-diversity plots
 p_list <- lapply(
   as.list(levels(adiv$adiv)),
@@ -257,7 +257,7 @@ p_list <- lapply(
                            aes(xmin = start, xmax = end, annotations = p.value, y_position = y),
                            map_signif_level = TRUE,
                            tip_length = 0.01,
-                           textsize = 4, 
+                           textsize = 3, 
                            manual = T)
       }
     
@@ -272,8 +272,8 @@ p_list <- lapply(
                                        rowhead = list(fg_params = list(hjust = 0, x = 0))))
     
     # Assemble plots
-    lab <- plot_grid(tg, NULL, labels = "", ncol = 1, rel_heights = c(1,2.5))
-    plot_grid(p, lab, labels = "", ncol = 2, rel_widths = c(1.9,1))
+    lab <- plot_grid(tg, NULL, labels = "", ncol = 1, rel_heights = c(1, 2))
+    plot_grid(p, lab, labels = "", ncol = 2, rel_widths = c(2, 1))
   }
 )
 
@@ -281,13 +281,13 @@ p_list <- lapply(
 legend <- get_legend(p)
 
 # Assemble plots
-prow <- plot_grid(plotlist = p_list, nrow = 2, align = 'v', axis = "l", labels = "")
+prow <- plot_grid(plotlist = p_list, ncol = 2, align = 'v', axis = "lr", labels = "")
 
 # Add legend to the assembled plot
-plot_grid(prow, legend, rel_widths = c(6, 1))
+plot_grid(prow, legend, rel_widths = c(7, 1))
 
 # Export figure
-ggsave(here("result", "figures", "Figure 4.tiff"), width = 8, height = 10,
+ggsave(here("result", "figures", "Figure 4.tiff"), width = 8, height = 9,
        units = "in", dpi = 300, compression = "lzw")
 ```
 

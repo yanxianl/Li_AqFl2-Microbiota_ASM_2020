@@ -22,7 +22,7 @@ library(dada2)
 library(here)
 library(tidyverse)
 library(cowplot)
-library(data.table)
+library(DT)
 
 # Set seed
 set.seed(1910)
@@ -144,7 +144,7 @@ Inspect distribution of sequence lengths
 table(nchar(getSequences(seqtab))) %>% 
   as.data.frame() %>% 
   rename("seqence length"=Var1) %>% 
-  DT::datatable(options=list(
+  datatable(options=list(
     columnDefs=list(list(className='dt-left', targets=c(0:2)))
     ))
 ```
@@ -190,7 +190,7 @@ getN <- function(x) sum(getUniques(x))
 stats <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
 colnames(stats) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
 rownames(stats) <- sample.names
-DT::datatable(stats)
+datatable(stats)
 ```
 
 Plot the sequences stats:

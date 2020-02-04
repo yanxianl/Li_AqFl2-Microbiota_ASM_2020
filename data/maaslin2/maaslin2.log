@@ -1,201 +1,201 @@
-2020-01-28 15:03:11 INFO::Writing function arguments to log file
-2020-01-28 15:03:11 DEBUG::Function arguments
-2020-01-28 15:03:11 DEBUG::Output folder: C:/Users/yanxianl/nutrition_group Dropbox/Yanxian Li/Li_AqFl2-seawater_AEM_2019/data/maaslin2
-2020-01-28 15:03:11 DEBUG::Min Abundance: 0.000100
-2020-01-28 15:03:11 DEBUG::Min Prevalence: 0.250000
-2020-01-28 15:03:11 DEBUG::Normalization: TSS
-2020-01-28 15:03:11 DEBUG::Transform: LOG
-2020-01-28 15:03:11 DEBUG::Analysis method: LM
-2020-01-28 15:03:11 DEBUG::Max significance: 0.250000
-2020-01-28 15:03:11 DEBUG::Random effects: FishID,NetPen
-2020-01-28 15:03:11 DEBUG::Fixed effects: Diet,Sample_origin,DISI,Histology_lpc,qPCR_immune_response,qPCR_barrier_function
-2020-01-28 15:03:11 DEBUG::Correction method: BH
-2020-01-28 15:03:11 DEBUG::Standardize: TRUE
-2020-01-28 15:03:11 DEBUG::Cores: 1
-2020-01-28 15:03:11 INFO::Verifying options selected are valid
-2020-01-28 15:03:12 INFO::Determining format of input files
-2020-01-28 15:03:12 INFO::Input format is data samples as columns and metadata samples as rows
-2020-01-28 15:03:12 DEBUG::Transformed data so samples are rows
-2020-01-28 15:03:12 DEBUG::A total of 72 samples were found in both the data and metadata
-2020-01-28 15:03:12 DEBUG::Reordering data/metadata to use same sample ordering
-2020-01-28 15:03:12 INFO::Formula for random effects: expr ~ (1 | FishID) + (1 | NetPen)
-2020-01-28 15:03:12 INFO::Formula for fixed effects: expr ~  Diet + Sample_origin + DISI + Histology_lpc + qPCR_immune_response + qPCR_barrier_function
-2020-01-28 15:03:12 INFO::Running selected normalization method: TSS
-2020-01-28 15:03:12 INFO::Filter data based on min abundance and min prevalence
-2020-01-28 15:03:12 INFO::Total samples in data: 72
-2020-01-28 15:03:12 INFO::Min samples required with min abundance for a feature not to be filtered: 18.000000
-2020-01-28 15:03:12 INFO::Total filtered features: 193
-2020-01-28 15:03:12 INFO::Filtered feature names: [Eubacterium] fissicatena group, [Eubacterium] nodatum group, 1174-901-12, Acidipropionibacterium, Aeribacillus pallidus, Aerococcus, Aeromicrobium, Alcaligenes, Alishewanella, Alkaliphilus, Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium, alpha proteobacterium PI_GH4.1.H5, Aminobacter, Ammoniphilus, Amnibacterium, Anaerococcus, Anaerocolumna, Anaerosalibacter, Anaerosporobacter, Aneurinibacillus, Arthrobacter, Atopococcus, Atopostipes, Bacteroides, Bavariicoccus, Bordetella, Brevibacillus, Brochothrix, Burkholderia-Caballeronia-Paraburkholderia, c__Actinobacteria, c__Berkelbacteria, Caldicoprobacter, Calditerricola yamamurae, Carnobacterium, Cerasibacillus, Cetobacterium, Clade Ia, Clostridioides mangenotii, Clostridium sensu stricto 1, Clostridium sensu stricto 13, Clostridium sensu stricto 15, Clostridium sensu stricto 18, Clostridium sensu stricto 5, Comamonas, Curtobacterium, Cutibacterium, Dechloromonas, Defluviitalea, Deinococcus, Devosia, Dysgonomonas, Dysgonomonas sp. BGC7, Empedobacter, Enteractinococcus, Erwinia, Erysipelothrix, Escherichia-Shigella, Eubacterium, Exiguobacterium, f__Aerococcaceae, f__Atopobiaceae, f__Burkholderiaceae, f__Clade II, f__Clade IV, f__Cyanobiaceae, f__Eggerthellaceae, f__Enterobacteriaceae, f__Erysipelotrichaceae, f__Fimbriimonadaceae, f__Gimesiaceae, f__Halomonadaceae, f__Microbacteriaceae, f__Micrococcaceae, f__Orbaceae, f__Paenibacillaceae, f__Peptococcaceae, f__Peptostreptococcaceae, f__Planococcaceae, f__Propionibacteriaceae, f__Ruminococcaceae, f__Sphingomonadaceae, f__Tannerellaceae, f__Thermoactinomycetaceae, f__Weeksellaceae, Facklamia, Flaviflexus, Frigoribacterium, Frondihabitans, Fusobacterium, Gallicola, Geobacillus sp. ARB04, Georgenia, Glaciecola, Gulosibacter, Halomonas, Halopeptonella, Hathewaya, Herbinix, Hydrogenibacillus schlegelii, Hymenobacter, Ignatzschineria, Jeotgalibaca, Klebsiella, Kocuria, Kroppenstedtia, Lachnoclostridium 5, Lawsonella, Lentibacter, Marinobacter adhaerens, Massilia, Megasphaera, Methylobacterium, Methylophaga, Micrococcus, MN 122.2a, Moritella, Myroides, Natranaerovirga, Nocardiopsis, o__Clostridiales, o__Micrococcales, o__PeM15, o__Planctomycetales, o__Pseudomonadales, o__SAR11 clade, o__SAR86 clade, o__UBA10353 marine group, Oceanisphaera, Ochrobactrum sp. TX-100, Oligella, p__Marinimicrobia (SAR406 clade), Paenalcaligenes, Paeniglutamicibacter, Pantoea, Paraclostridium, Paracoccus, Parapusillimonas, Pediococcus acidilactici, Pedobacter, Peptococcus, Peptoniphilus, Phascolarctobacterium, Planctomicrobium, Plantibacter, Proteus mirabilis, Providencia, Pseudoalteromonas, Pseudoclavibacter, Pseudoglutamicibacter, Pseudogracilibacillus, Pseudoxanthomonas, Psychrilyobacter, Psychrobacillus, Psychrobacter, Pusillimonas, Rathayibacter, Rhodoglobus, Rhodopirellula, Romboutsia, Rubripirellula, Rummeliibacillus, Saccharibacillus, Saccharomonospora, Saccharopolyspora, Salinicola, Sanguibacter, Savagea, Sediminibacterium, Segetibacter, Shewanella, Sinibacillus, Solibacillus, Sphingomonas, Sporanaerobacter, Sporosarcina, Stenotrophomonas, SUP05 cluster, Symbiobacterium, Synechococcus CC9902, Tepidimonas, Tepidiphilus, Tessaracoccus, Tetragenococcus, Thermobacillus, Timonella, Tissierella, Turicibacter, Tyzzerella 3, Virgibacillus, Viridibacillus, W5053, wall-less spirochete, Wohlfahrtiimonas
-2020-01-28 15:03:12 INFO::Applying z-score to standardize continuous metadata
-2020-01-28 15:03:12 INFO::Running selected transform method: LOG
-2020-01-28 15:03:12 INFO::Running selected analysis method: LM
-2020-01-28 15:03:12 INFO::Fitting model to feature number 1, Acinetobacter
-2020-01-28 15:03:12 INFO::Fitting model to feature number 2, Actinomyces
-2020-01-28 15:03:12 INFO::Fitting model to feature number 3, Aliivibrio
-2020-01-28 15:03:13 INFO::Fitting model to feature number 4, Anoxybacillus
-2020-01-28 15:03:13 INFO::Fitting model to feature number 5, Bacillus
-2020-01-28 15:03:13 INFO::Fitting model to feature number 6, Brachybacterium
-2020-01-28 15:03:13 INFO::Fitting model to feature number 7, Brevibacterium
-2020-01-28 15:03:13 INFO::Fitting model to feature number 8, Brevinema andersonii
-2020-01-28 15:03:14 INFO::Fitting model to feature number 9, Cellulosimicrobium
-2020-01-28 15:03:14 INFO::Fitting model to feature number 10, Clostridium sensu stricto 7
-2020-01-28 15:03:14 INFO::Fitting model to feature number 11, Corynebacterium 1
-2020-01-28 15:03:14 INFO::Fitting model to feature number 12, Dietzia
-2020-01-28 15:03:14 INFO::Fitting model to feature number 13, Enterococcus
-2020-01-28 15:03:15 INFO::Fitting model to feature number 14, Erysipelatoclostridium
-2020-01-28 15:03:15 INFO::Fitting model to feature number 15, f__Bacillaceae
-2020-01-28 15:03:15 INFO::Fitting model to feature number 16, f__Beutenbergiaceae
-2020-01-28 15:03:15 INFO::Fitting model to feature number 17, f__Clostridiaceae 1
-2020-01-28 15:03:15 INFO::Fitting model to feature number 18, f__Corynebacteriaceae
-2020-01-28 15:03:16 INFO::Fitting model to feature number 19, f__Enterococcaceae
-2020-01-28 15:03:16 INFO::Fitting model to feature number 20, f__Lachnospiraceae
-2020-01-28 15:03:16 INFO::Fitting model to feature number 21, f__Sphingobacteriaceae
-2020-01-28 15:03:16 INFO::Fitting model to feature number 22, f__Spirochaetaceae
-2020-01-28 15:03:16 INFO::Fitting model to feature number 23, Flavobacterium
-2020-01-28 15:03:17 INFO::Fitting model to feature number 24, Geobacillus
-2020-01-28 15:03:17 INFO::Fitting model to feature number 25, Globicatella
-2020-01-28 15:03:17 INFO::Fitting model to feature number 26, Glutamicibacter
-2020-01-28 15:03:17 INFO::Fitting model to feature number 27, Gordonia
-2020-01-28 15:03:17 INFO::Fitting model to feature number 28, Gracilibacillus
-2020-01-28 15:03:18 INFO::Fitting model to feature number 29, Jeotgalicoccus
-2020-01-28 15:03:18 INFO::Fitting model to feature number 30, Kurthia
-2020-01-28 15:03:18 INFO::Fitting model to feature number 31, Lactobacillus
-2020-01-28 15:03:18 INFO::Fitting model to feature number 32, Lactococcus
-2020-01-28 15:03:18 INFO::Fitting model to feature number 33, Leucobacter
-2020-01-28 15:03:18 INFO::Fitting model to feature number 34, Leuconostoc
-2020-01-28 15:03:18 INFO::Fitting model to feature number 35, Lysinibacillus
-2020-01-28 15:03:18 INFO::Fitting model to feature number 36, Lysobacter
-2020-01-28 15:03:19 INFO::Fitting model to feature number 37, Macrococcus
-2020-01-28 15:03:19 INFO::Fitting model to feature number 38, Microbacterium
-2020-01-28 15:03:19 INFO::Fitting model to feature number 39, Morganella
-2020-01-28 15:03:19 INFO::Fitting model to feature number 40, Mycoplasma
-2020-01-28 15:03:19 INFO::Fitting model to feature number 41, o__Bacillales
-2020-01-28 15:03:19 INFO::Fitting model to feature number 42, o__Lactobacillales
-2020-01-28 15:03:19 INFO::Fitting model to feature number 43, Oceanobacillus
-2020-01-28 15:03:19 INFO::Fitting model to feature number 44, Ornithinibacillus
-2020-01-28 15:03:19 INFO::Fitting model to feature number 45, p__RsaHF231
-2020-01-28 15:03:20 INFO::Fitting model to feature number 46, Paenibacillus
-2020-01-28 15:03:20 INFO::Fitting model to feature number 47, Peptostreptococcus
-2020-01-28 15:03:20 INFO::Fitting model to feature number 48, Photobacterium
-2020-01-28 15:03:20 INFO::Fitting model to feature number 49, Pseudomonas
-2020-01-28 15:03:20 INFO::Fitting model to feature number 50, Rhodococcus
-2020-01-28 15:03:20 INFO::Fitting model to feature number 51, Sphingobacterium
-2020-01-28 15:03:20 INFO::Fitting model to feature number 52, Staphylococcus
-2020-01-28 15:03:20 INFO::Fitting model to feature number 53, Streptococcus
-2020-01-28 15:03:21 INFO::Fitting model to feature number 54, Tepidimicrobium
-2020-01-28 15:03:21 INFO::Fitting model to feature number 55, Ureibacillus
-2020-01-28 15:03:21 INFO::Fitting model to feature number 56, Vagococcus
-2020-01-28 15:03:21 INFO::Fitting model to feature number 57, Weissella
-2020-01-28 15:03:21 INFO::Counting total values for each feature
-2020-01-28 15:03:21 WARNING::Deleting existing residuals file: C:/Users/yanxianl/nutrition_group Dropbox/Yanxian Li/Li_AqFl2-seawater_AEM_2019/data/maaslin2/residuals.rds
-2020-01-28 15:03:21 INFO::Writing residuals to file C:/Users/yanxianl/nutrition_group Dropbox/Yanxian Li/Li_AqFl2-seawater_AEM_2019/data/maaslin2/residuals.rds
-2020-01-28 15:03:21 INFO::Writing all results to file (ordered by increasing q-values): C:/Users/yanxianl/nutrition_group Dropbox/Yanxian Li/Li_AqFl2-seawater_AEM_2019/data/maaslin2/all_results.tsv
-2020-01-28 15:03:21 INFO::Writing the significant results (those which are less than or equal to the threshold of 0.250000 ) to file (ordered by increasing q-values): C:/Users/yanxianl/nutrition_group Dropbox/Yanxian Li/Li_AqFl2-seawater_AEM_2019/data/maaslin2/significant_results.tsv
-2020-01-28 15:03:21 INFO::Writing heatmap of significant results to file: C:/Users/yanxianl/nutrition_group Dropbox/Yanxian Li/Li_AqFl2-seawater_AEM_2019/data/maaslin2/heatmap.pdf
-2020-01-28 15:03:21 INFO::Writing association plots (one for each significant association) to output folder: C:/Users/yanxianl/nutrition_group Dropbox/Yanxian Li/Li_AqFl2-seawater_AEM_2019/data/maaslin2
-2020-01-28 15:03:21 INFO::Plotting associations from most to least significant, grouped by metadata
-2020-01-28 15:03:21 INFO::Plotting data for metadata number 1, Diet
-2020-01-28 15:03:21 INFO::Creating boxplot for catgorical data, Diet vs Corynebacterium 1
-2020-01-28 15:03:22 INFO::Creating boxplot for catgorical data, Diet vs f__Bacillaceae
-2020-01-28 15:03:22 INFO::Creating boxplot for catgorical data, Diet vs Actinomyces
-2020-01-28 15:03:22 INFO::Creating boxplot for catgorical data, Diet vs f__Beutenbergiaceae
-2020-01-28 15:03:23 INFO::Creating boxplot for catgorical data, Diet vs Gracilibacillus
-2020-01-28 15:03:23 INFO::Creating boxplot for catgorical data, Diet vs Microbacterium
-2020-01-28 15:03:23 INFO::Creating boxplot for catgorical data, Diet vs Ornithinibacillus
-2020-01-28 15:03:23 INFO::Creating boxplot for catgorical data, Diet vs p__RsaHF231
-2020-01-28 15:03:23 INFO::Creating boxplot for catgorical data, Diet vs Lysinibacillus
-2020-01-28 15:03:24 INFO::Creating boxplot for catgorical data, Diet vs Brevibacterium
-2020-01-28 15:03:24 INFO::Creating boxplot for catgorical data, Diet vs Rhodococcus
-2020-01-28 15:03:24 INFO::Creating boxplot for catgorical data, Diet vs Oceanobacillus
-2020-01-28 15:03:24 INFO::Creating boxplot for catgorical data, Diet vs Brachybacterium
-2020-01-28 15:03:24 INFO::Creating boxplot for catgorical data, Diet vs f__Lachnospiraceae
-2020-01-28 15:03:25 INFO::Creating boxplot for catgorical data, Diet vs f__Enterococcaceae
-2020-01-28 15:03:25 INFO::Creating boxplot for catgorical data, Diet vs o__Lactobacillales
-2020-01-28 15:03:25 INFO::Creating boxplot for catgorical data, Diet vs Leucobacter
-2020-01-28 15:03:25 INFO::Creating boxplot for catgorical data, Diet vs Tepidimicrobium
-2020-01-28 15:03:26 INFO::Creating boxplot for catgorical data, Diet vs Enterococcus
-2020-01-28 15:03:26 INFO::Creating boxplot for catgorical data, Diet vs Gordonia
-2020-01-28 15:03:27 INFO::Creating boxplot for catgorical data, Diet vs Bacillus
-2020-01-28 15:03:27 INFO::Creating boxplot for catgorical data, Diet vs Geobacillus
-2020-01-28 15:03:27 INFO::Creating boxplot for catgorical data, Diet vs Weissella
-2020-01-28 15:03:27 INFO::Creating boxplot for catgorical data, Diet vs Peptostreptococcus
-2020-01-28 15:03:28 INFO::Creating boxplot for catgorical data, Diet vs Ureibacillus
-2020-01-28 15:03:28 INFO::Creating boxplot for catgorical data, Diet vs Photobacterium
-2020-01-28 15:03:28 INFO::Creating boxplot for catgorical data, Diet vs Vagococcus
-2020-01-28 15:03:28 INFO::Creating boxplot for catgorical data, Diet vs Erysipelatoclostridium
-2020-01-28 15:03:28 INFO::Creating boxplot for catgorical data, Diet vs Brevinema andersonii
-2020-01-28 15:03:29 INFO::Creating boxplot for catgorical data, Diet vs Flavobacterium
-2020-01-28 15:03:29 INFO::Creating boxplot for catgorical data, Diet vs Cellulosimicrobium
-2020-01-28 15:03:29 INFO::Creating boxplot for catgorical data, Diet vs Pseudomonas
-2020-01-28 15:03:29 INFO::Creating boxplot for catgorical data, Diet vs Anoxybacillus
-2020-01-28 15:03:30 INFO::Creating boxplot for catgorical data, Diet vs Mycoplasma
-2020-01-28 15:03:30 INFO::Creating boxplot for catgorical data, Diet vs Dietzia
-2020-01-28 15:03:31 INFO::Creating boxplot for catgorical data, Diet vs Streptococcus
-2020-01-28 15:03:31 INFO::Creating boxplot for catgorical data, Diet vs f__Corynebacteriaceae
-2020-01-28 15:03:31 INFO::Plotting data for metadata number 2, Sample_origin
-2020-01-28 15:03:31 INFO::Creating boxplot for catgorical data, Sample_origin vs Lysinibacillus
-2020-01-28 15:03:31 INFO::Creating boxplot for catgorical data, Sample_origin vs f__Bacillaceae
-2020-01-28 15:03:32 INFO::Creating boxplot for catgorical data, Sample_origin vs Brevinema andersonii
-2020-01-28 15:03:32 INFO::Creating boxplot for catgorical data, Sample_origin vs f__Lachnospiraceae
-2020-01-28 15:03:32 INFO::Creating boxplot for catgorical data, Sample_origin vs Gordonia
-2020-01-28 15:03:32 INFO::Creating boxplot for catgorical data, Sample_origin vs Brachybacterium
-2020-01-28 15:03:32 INFO::Creating boxplot for catgorical data, Sample_origin vs Enterococcus
-2020-01-28 15:03:33 INFO::Creating boxplot for catgorical data, Sample_origin vs f__Beutenbergiaceae
-2020-01-28 15:03:33 INFO::Creating boxplot for catgorical data, Sample_origin vs Leucobacter
-2020-01-28 15:03:33 INFO::Creating boxplot for catgorical data, Sample_origin vs Ornithinibacillus
-2020-01-28 15:03:33 INFO::Creating boxplot for catgorical data, Sample_origin vs Oceanobacillus
-2020-01-28 15:03:34 INFO::Creating boxplot for catgorical data, Sample_origin vs Lactobacillus
-2020-01-28 15:03:34 INFO::Creating boxplot for catgorical data, Sample_origin vs Bacillus
-2020-01-28 15:03:34 INFO::Creating boxplot for catgorical data, Sample_origin vs Corynebacterium 1
-2020-01-28 15:03:34 INFO::Creating boxplot for catgorical data, Sample_origin vs Gracilibacillus
-2020-01-28 15:03:34 INFO::Creating boxplot for catgorical data, Sample_origin vs Anoxybacillus
-2020-01-28 15:03:35 INFO::Creating boxplot for catgorical data, Sample_origin vs o__Lactobacillales
-2020-01-28 15:03:35 INFO::Creating boxplot for catgorical data, Sample_origin vs Flavobacterium
-2020-01-28 15:03:35 INFO::Creating boxplot for catgorical data, Sample_origin vs Dietzia
-2020-01-28 15:03:35 INFO::Creating boxplot for catgorical data, Sample_origin vs Rhodococcus
-2020-01-28 15:03:35 INFO::Creating boxplot for catgorical data, Sample_origin vs f__Enterococcaceae
-2020-01-28 15:03:36 INFO::Creating boxplot for catgorical data, Sample_origin vs Tepidimicrobium
-2020-01-28 15:03:36 INFO::Creating boxplot for catgorical data, Sample_origin vs o__Bacillales
-2020-01-28 15:03:36 INFO::Creating boxplot for catgorical data, Sample_origin vs Geobacillus
-2020-01-28 15:03:36 INFO::Creating boxplot for catgorical data, Sample_origin vs f__Spirochaetaceae
-2020-01-28 15:03:37 INFO::Creating boxplot for catgorical data, Sample_origin vs Globicatella
-2020-01-28 15:03:37 INFO::Creating boxplot for catgorical data, Sample_origin vs Paenibacillus
-2020-01-28 15:03:37 INFO::Creating boxplot for catgorical data, Sample_origin vs Peptostreptococcus
-2020-01-28 15:03:37 INFO::Creating boxplot for catgorical data, Sample_origin vs Mycoplasma
-2020-01-28 15:03:38 INFO::Creating boxplot for catgorical data, Sample_origin vs Leuconostoc
-2020-01-28 15:03:38 INFO::Creating boxplot for catgorical data, Sample_origin vs Vagococcus
-2020-01-28 15:03:38 INFO::Creating boxplot for catgorical data, Sample_origin vs Sphingobacterium
-2020-01-28 15:03:38 INFO::Creating boxplot for catgorical data, Sample_origin vs Ureibacillus
-2020-01-28 15:03:39 INFO::Creating boxplot for catgorical data, Sample_origin vs Macrococcus
-2020-01-28 15:03:39 INFO::Creating boxplot for catgorical data, Sample_origin vs Weissella
-2020-01-28 15:03:39 INFO::Creating boxplot for catgorical data, Sample_origin vs Clostridium sensu stricto 7
-2020-01-28 15:03:39 INFO::Creating boxplot for catgorical data, Sample_origin vs Staphylococcus
-2020-01-28 15:03:39 INFO::Creating boxplot for catgorical data, Sample_origin vs Streptococcus
-2020-01-28 15:03:40 INFO::Creating boxplot for catgorical data, Sample_origin vs Microbacterium
-2020-01-28 15:03:40 INFO::Creating boxplot for catgorical data, Sample_origin vs Photobacterium
-2020-01-28 15:03:40 INFO::Creating boxplot for catgorical data, Sample_origin vs Actinomyces
-2020-01-28 15:03:40 INFO::Creating boxplot for catgorical data, Sample_origin vs Brevibacterium
-2020-01-28 15:03:41 INFO::Creating boxplot for catgorical data, Sample_origin vs Glutamicibacter
-2020-01-28 15:03:41 INFO::Creating boxplot for catgorical data, Sample_origin vs f__Corynebacteriaceae
-2020-01-28 15:03:41 INFO::Creating boxplot for catgorical data, Sample_origin vs Pseudomonas
-2020-01-28 15:03:41 INFO::Creating boxplot for catgorical data, Sample_origin vs p__RsaHF231
-2020-01-28 15:03:41 INFO::Creating boxplot for catgorical data, Sample_origin vs Lactococcus
-2020-01-28 15:03:42 INFO::Creating boxplot for catgorical data, Sample_origin vs Cellulosimicrobium
-2020-01-28 15:03:42 INFO::Plotting data for metadata number 3, qPCR_immune_response
-2020-01-28 15:03:42 INFO::Creating scatter plot for continuous data, qPCR_immune_response vs Brevinema andersonii
-2020-01-28 15:03:42 INFO::Creating scatter plot for continuous data, qPCR_immune_response vs f__Sphingobacteriaceae
-2020-01-28 15:03:42 INFO::Creating scatter plot for continuous data, qPCR_immune_response vs Kurthia
-2020-01-28 15:03:43 INFO::Creating scatter plot for continuous data, qPCR_immune_response vs Actinomyces
-2020-01-28 15:03:43 INFO::Creating scatter plot for continuous data, qPCR_immune_response vs Microbacterium
-2020-01-28 15:03:43 INFO::Creating scatter plot for continuous data, qPCR_immune_response vs Lysobacter
-2020-01-28 15:03:43 INFO::Plotting data for metadata number 4, qPCR_barrier_function
-2020-01-28 15:03:43 INFO::Creating scatter plot for continuous data, qPCR_barrier_function vs Cellulosimicrobium
-2020-01-28 15:03:43 INFO::Creating scatter plot for continuous data, qPCR_barrier_function vs Glutamicibacter
-2020-01-28 15:03:44 INFO::Creating scatter plot for continuous data, qPCR_barrier_function vs f__Spirochaetaceae
-2020-01-28 15:03:44 INFO::Creating scatter plot for continuous data, qPCR_barrier_function vs Pseudomonas
-2020-01-28 15:03:44 INFO::Plotting data for metadata number 5, DISI
-2020-01-28 15:03:44 INFO::Creating scatter plot for continuous data, DISI vs Pseudomonas
-2020-01-28 15:03:44 INFO::Creating scatter plot for continuous data, DISI vs Acinetobacter
-2020-01-28 15:03:45 INFO::Plotting data for metadata number 6, Histology_lpc
-2020-01-28 15:03:45 INFO::Creating boxplot for catgorical data, Histology_lpc vs f__Sphingobacteriaceae
-2020-01-28 15:03:45 INFO::Creating boxplot for catgorical data, Histology_lpc vs p__RsaHF231
+2020-02-03 11:19:00 INFO::Writing function arguments to log file
+2020-02-03 11:19:00 DEBUG::Function arguments
+2020-02-03 11:19:00 DEBUG::Output folder: C:/Users/ljt89/NMBU-Nutrition group Dropbox/Yanxian Li/Li_AqFl2-seawater_AEM_2019/data/maaslin2
+2020-02-03 11:19:00 DEBUG::Min Abundance: 0.000100
+2020-02-03 11:19:00 DEBUG::Min Prevalence: 0.250000
+2020-02-03 11:19:00 DEBUG::Normalization: TSS
+2020-02-03 11:19:00 DEBUG::Transform: LOG
+2020-02-03 11:19:00 DEBUG::Analysis method: LM
+2020-02-03 11:19:00 DEBUG::Max significance: 0.250000
+2020-02-03 11:19:00 DEBUG::Random effects: FishID,NetPen
+2020-02-03 11:19:00 DEBUG::Fixed effects: Diet,Sample_origin,DISI,Histology_lpc,qPCR_immune_response,qPCR_barrier_function
+2020-02-03 11:19:00 DEBUG::Correction method: BH
+2020-02-03 11:19:00 DEBUG::Standardize: TRUE
+2020-02-03 11:19:00 DEBUG::Cores: 1
+2020-02-03 11:19:00 INFO::Verifying options selected are valid
+2020-02-03 11:19:00 INFO::Determining format of input files
+2020-02-03 11:19:00 INFO::Input format is data samples as columns and metadata samples as rows
+2020-02-03 11:19:00 DEBUG::Transformed data so samples are rows
+2020-02-03 11:19:00 DEBUG::A total of 72 samples were found in both the data and metadata
+2020-02-03 11:19:00 DEBUG::Reordering data/metadata to use same sample ordering
+2020-02-03 11:19:00 INFO::Formula for random effects: expr ~ (1 | FishID) + (1 | NetPen)
+2020-02-03 11:19:00 INFO::Formula for fixed effects: expr ~  Diet + Sample_origin + DISI + Histology_lpc + qPCR_immune_response + qPCR_barrier_function
+2020-02-03 11:19:00 INFO::Running selected normalization method: TSS
+2020-02-03 11:19:01 INFO::Filter data based on min abundance and min prevalence
+2020-02-03 11:19:01 INFO::Total samples in data: 72
+2020-02-03 11:19:01 INFO::Min samples required with min abundance for a feature not to be filtered: 18.000000
+2020-02-03 11:19:01 INFO::Total filtered features: 193
+2020-02-03 11:19:01 INFO::Filtered feature names: [Eubacterium] fissicatena group, [Eubacterium] nodatum group, 1174-901-12, Acidipropionibacterium, Aeribacillus pallidus, Aerococcus, Aeromicrobium, Alcaligenes, Alishewanella, Alkaliphilus, Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium, alpha proteobacterium PI_GH4.1.H5, Aminobacter, Ammoniphilus, Amnibacterium, Anaerococcus, Anaerocolumna, Anaerosalibacter, Anaerosporobacter, Aneurinibacillus, Arthrobacter, Atopococcus, Atopostipes, Bacteroides, Bavariicoccus, Bordetella, Brevibacillus, Brochothrix, Burkholderia-Caballeronia-Paraburkholderia, c__Actinobacteria, c__Berkelbacteria, Caldicoprobacter, Calditerricola yamamurae, Carnobacterium, Cerasibacillus, Cetobacterium, Clade Ia, Clostridioides mangenotii, Clostridium sensu stricto 1, Clostridium sensu stricto 13, Clostridium sensu stricto 15, Clostridium sensu stricto 18, Clostridium sensu stricto 5, Comamonas, Curtobacterium, Cutibacterium, Dechloromonas, Defluviitalea, Deinococcus, Devosia, Dysgonomonas, Dysgonomonas sp. BGC7, Empedobacter, Enteractinococcus, Erwinia, Erysipelothrix, Escherichia-Shigella, Eubacterium, Exiguobacterium, f__Aerococcaceae, f__Atopobiaceae, f__Burkholderiaceae, f__Clade II, f__Clade IV, f__Cyanobiaceae, f__Eggerthellaceae, f__Enterobacteriaceae, f__Erysipelotrichaceae, f__Fimbriimonadaceae, f__Gimesiaceae, f__Halomonadaceae, f__Microbacteriaceae, f__Micrococcaceae, f__Orbaceae, f__Paenibacillaceae, f__Peptococcaceae, f__Peptostreptococcaceae, f__Planococcaceae, f__Propionibacteriaceae, f__Ruminococcaceae, f__Sphingomonadaceae, f__Tannerellaceae, f__Thermoactinomycetaceae, f__Weeksellaceae, Facklamia, Flaviflexus, Frigoribacterium, Frondihabitans, Fusobacterium, Gallicola, Geobacillus sp. ARB04, Georgenia, Glaciecola, Gulosibacter, Halomonas, Halopeptonella, Hathewaya, Herbinix, Hydrogenibacillus schlegelii, Hymenobacter, Ignatzschineria, Jeotgalibaca, Klebsiella, Kocuria, Kroppenstedtia, Lachnoclostridium 5, Lawsonella, Lentibacter, Marinobacter adhaerens, Massilia, Megasphaera, Methylobacterium, Methylophaga, Micrococcus, MN 122.2a, Moritella, Myroides, Natranaerovirga, Nocardiopsis, o__Clostridiales, o__Micrococcales, o__PeM15, o__Planctomycetales, o__Pseudomonadales, o__SAR11 clade, o__SAR86 clade, o__UBA10353 marine group, Oceanisphaera, Ochrobactrum sp. TX-100, Oligella, p__Marinimicrobia (SAR406 clade), Paenalcaligenes, Paeniglutamicibacter, Pantoea, Paraclostridium, Paracoccus, Parapusillimonas, Pediococcus acidilactici, Pedobacter, Peptococcus, Peptoniphilus, Phascolarctobacterium, Planctomicrobium, Plantibacter, Proteus mirabilis, Providencia, Pseudoalteromonas, Pseudoclavibacter, Pseudoglutamicibacter, Pseudogracilibacillus, Pseudoxanthomonas, Psychrilyobacter, Psychrobacillus, Psychrobacter, Pusillimonas, Rathayibacter, Rhodoglobus, Rhodopirellula, Romboutsia, Rubripirellula, Rummeliibacillus, Saccharibacillus, Saccharomonospora, Saccharopolyspora, Salinicola, Sanguibacter, Savagea, Sediminibacterium, Segetibacter, Shewanella, Sinibacillus, Solibacillus, Sphingomonas, Sporanaerobacter, Sporosarcina, Stenotrophomonas, SUP05 cluster, Symbiobacterium, Synechococcus CC9902, Tepidimonas, Tepidiphilus, Tessaracoccus, Tetragenococcus, Thermobacillus, Timonella, Tissierella, Turicibacter, Tyzzerella 3, Virgibacillus, Viridibacillus, W5053, wall-less spirochete, Wohlfahrtiimonas
+2020-02-03 11:19:01 INFO::Applying z-score to standardize continuous metadata
+2020-02-03 11:19:01 INFO::Running selected transform method: LOG
+2020-02-03 11:19:01 INFO::Running selected analysis method: LM
+2020-02-03 11:19:01 INFO::Fitting model to feature number 1, Acinetobacter
+2020-02-03 11:19:01 INFO::Fitting model to feature number 2, Actinomyces
+2020-02-03 11:19:01 INFO::Fitting model to feature number 3, Aliivibrio
+2020-02-03 11:19:01 INFO::Fitting model to feature number 4, Anoxybacillus
+2020-02-03 11:19:01 INFO::Fitting model to feature number 5, Bacillus
+2020-02-03 11:19:01 INFO::Fitting model to feature number 6, Brachybacterium
+2020-02-03 11:19:02 INFO::Fitting model to feature number 7, Brevibacterium
+2020-02-03 11:19:02 INFO::Fitting model to feature number 8, Brevinema andersonii
+2020-02-03 11:19:02 INFO::Fitting model to feature number 9, Cellulosimicrobium
+2020-02-03 11:19:02 INFO::Fitting model to feature number 10, Clostridium sensu stricto 7
+2020-02-03 11:19:02 INFO::Fitting model to feature number 11, Corynebacterium 1
+2020-02-03 11:19:02 INFO::Fitting model to feature number 12, Dietzia
+2020-02-03 11:19:02 INFO::Fitting model to feature number 13, Enterococcus
+2020-02-03 11:19:03 INFO::Fitting model to feature number 14, Erysipelatoclostridium
+2020-02-03 11:19:03 INFO::Fitting model to feature number 15, f__Bacillaceae
+2020-02-03 11:19:03 INFO::Fitting model to feature number 16, f__Beutenbergiaceae
+2020-02-03 11:19:03 INFO::Fitting model to feature number 17, f__Clostridiaceae 1
+2020-02-03 11:19:03 INFO::Fitting model to feature number 18, f__Corynebacteriaceae
+2020-02-03 11:19:03 INFO::Fitting model to feature number 19, f__Enterococcaceae
+2020-02-03 11:19:04 INFO::Fitting model to feature number 20, f__Lachnospiraceae
+2020-02-03 11:19:04 INFO::Fitting model to feature number 21, f__Sphingobacteriaceae
+2020-02-03 11:19:04 INFO::Fitting model to feature number 22, f__Spirochaetaceae
+2020-02-03 11:19:04 INFO::Fitting model to feature number 23, Flavobacterium
+2020-02-03 11:19:04 INFO::Fitting model to feature number 24, Geobacillus
+2020-02-03 11:19:04 INFO::Fitting model to feature number 25, Globicatella
+2020-02-03 11:19:04 INFO::Fitting model to feature number 26, Glutamicibacter
+2020-02-03 11:19:05 INFO::Fitting model to feature number 27, Gordonia
+2020-02-03 11:19:05 INFO::Fitting model to feature number 28, Gracilibacillus
+2020-02-03 11:19:05 INFO::Fitting model to feature number 29, Jeotgalicoccus
+2020-02-03 11:19:05 INFO::Fitting model to feature number 30, Kurthia
+2020-02-03 11:19:05 INFO::Fitting model to feature number 31, Lactobacillus
+2020-02-03 11:19:05 INFO::Fitting model to feature number 32, Lactococcus
+2020-02-03 11:19:05 INFO::Fitting model to feature number 33, Leucobacter
+2020-02-03 11:19:06 INFO::Fitting model to feature number 34, Leuconostoc
+2020-02-03 11:19:06 INFO::Fitting model to feature number 35, Lysinibacillus
+2020-02-03 11:19:06 INFO::Fitting model to feature number 36, Lysobacter
+2020-02-03 11:19:06 INFO::Fitting model to feature number 37, Macrococcus
+2020-02-03 11:19:06 INFO::Fitting model to feature number 38, Microbacterium
+2020-02-03 11:19:06 INFO::Fitting model to feature number 39, Morganella
+2020-02-03 11:19:07 INFO::Fitting model to feature number 40, Mycoplasma
+2020-02-03 11:19:07 INFO::Fitting model to feature number 41, o__Bacillales
+2020-02-03 11:19:07 INFO::Fitting model to feature number 42, o__Lactobacillales
+2020-02-03 11:19:07 INFO::Fitting model to feature number 43, Oceanobacillus
+2020-02-03 11:19:07 INFO::Fitting model to feature number 44, Ornithinibacillus
+2020-02-03 11:19:07 INFO::Fitting model to feature number 45, p__RsaHF231
+2020-02-03 11:19:07 INFO::Fitting model to feature number 46, Paenibacillus
+2020-02-03 11:19:08 INFO::Fitting model to feature number 47, Peptostreptococcus
+2020-02-03 11:19:08 INFO::Fitting model to feature number 48, Photobacterium
+2020-02-03 11:19:08 INFO::Fitting model to feature number 49, Pseudomonas
+2020-02-03 11:19:08 INFO::Fitting model to feature number 50, Rhodococcus
+2020-02-03 11:19:08 INFO::Fitting model to feature number 51, Sphingobacterium
+2020-02-03 11:19:08 INFO::Fitting model to feature number 52, Staphylococcus
+2020-02-03 11:19:09 INFO::Fitting model to feature number 53, Streptococcus
+2020-02-03 11:19:09 INFO::Fitting model to feature number 54, Tepidimicrobium
+2020-02-03 11:19:09 INFO::Fitting model to feature number 55, Ureibacillus
+2020-02-03 11:19:09 INFO::Fitting model to feature number 56, Vagococcus
+2020-02-03 11:19:09 INFO::Fitting model to feature number 57, Weissella
+2020-02-03 11:19:09 INFO::Counting total values for each feature
+2020-02-03 11:19:09 WARNING::Deleting existing residuals file: C:/Users/ljt89/NMBU-Nutrition group Dropbox/Yanxian Li/Li_AqFl2-seawater_AEM_2019/data/maaslin2/residuals.rds
+2020-02-03 11:19:09 INFO::Writing residuals to file C:/Users/ljt89/NMBU-Nutrition group Dropbox/Yanxian Li/Li_AqFl2-seawater_AEM_2019/data/maaslin2/residuals.rds
+2020-02-03 11:19:09 INFO::Writing all results to file (ordered by increasing q-values): C:/Users/ljt89/NMBU-Nutrition group Dropbox/Yanxian Li/Li_AqFl2-seawater_AEM_2019/data/maaslin2/all_results.tsv
+2020-02-03 11:19:09 INFO::Writing the significant results (those which are less than or equal to the threshold of 0.250000 ) to file (ordered by increasing q-values): C:/Users/ljt89/NMBU-Nutrition group Dropbox/Yanxian Li/Li_AqFl2-seawater_AEM_2019/data/maaslin2/significant_results.tsv
+2020-02-03 11:19:09 INFO::Writing heatmap of significant results to file: C:/Users/ljt89/NMBU-Nutrition group Dropbox/Yanxian Li/Li_AqFl2-seawater_AEM_2019/data/maaslin2/heatmap.pdf
+2020-02-03 11:19:10 INFO::Writing association plots (one for each significant association) to output folder: C:/Users/ljt89/NMBU-Nutrition group Dropbox/Yanxian Li/Li_AqFl2-seawater_AEM_2019/data/maaslin2
+2020-02-03 11:19:10 INFO::Plotting associations from most to least significant, grouped by metadata
+2020-02-03 11:19:10 INFO::Plotting data for metadata number 1, Diet
+2020-02-03 11:19:10 INFO::Creating boxplot for catgorical data, Diet vs Corynebacterium 1
+2020-02-03 11:19:10 INFO::Creating boxplot for catgorical data, Diet vs f__Bacillaceae
+2020-02-03 11:19:10 INFO::Creating boxplot for catgorical data, Diet vs Actinomyces
+2020-02-03 11:19:11 INFO::Creating boxplot for catgorical data, Diet vs f__Beutenbergiaceae
+2020-02-03 11:19:11 INFO::Creating boxplot for catgorical data, Diet vs Gracilibacillus
+2020-02-03 11:19:11 INFO::Creating boxplot for catgorical data, Diet vs Microbacterium
+2020-02-03 11:19:12 INFO::Creating boxplot for catgorical data, Diet vs Ornithinibacillus
+2020-02-03 11:19:12 INFO::Creating boxplot for catgorical data, Diet vs p__RsaHF231
+2020-02-03 11:19:12 INFO::Creating boxplot for catgorical data, Diet vs Lysinibacillus
+2020-02-03 11:19:12 INFO::Creating boxplot for catgorical data, Diet vs Brevibacterium
+2020-02-03 11:19:13 INFO::Creating boxplot for catgorical data, Diet vs Rhodococcus
+2020-02-03 11:19:13 INFO::Creating boxplot for catgorical data, Diet vs Oceanobacillus
+2020-02-03 11:19:13 INFO::Creating boxplot for catgorical data, Diet vs Brachybacterium
+2020-02-03 11:19:14 INFO::Creating boxplot for catgorical data, Diet vs f__Lachnospiraceae
+2020-02-03 11:19:14 INFO::Creating boxplot for catgorical data, Diet vs f__Enterococcaceae
+2020-02-03 11:19:14 INFO::Creating boxplot for catgorical data, Diet vs o__Lactobacillales
+2020-02-03 11:19:14 INFO::Creating boxplot for catgorical data, Diet vs Leucobacter
+2020-02-03 11:19:15 INFO::Creating boxplot for catgorical data, Diet vs Tepidimicrobium
+2020-02-03 11:19:15 INFO::Creating boxplot for catgorical data, Diet vs Enterococcus
+2020-02-03 11:19:15 INFO::Creating boxplot for catgorical data, Diet vs Gordonia
+2020-02-03 11:19:16 INFO::Creating boxplot for catgorical data, Diet vs Bacillus
+2020-02-03 11:19:16 INFO::Creating boxplot for catgorical data, Diet vs Geobacillus
+2020-02-03 11:19:16 INFO::Creating boxplot for catgorical data, Diet vs Weissella
+2020-02-03 11:19:16 INFO::Creating boxplot for catgorical data, Diet vs Peptostreptococcus
+2020-02-03 11:19:17 INFO::Creating boxplot for catgorical data, Diet vs Ureibacillus
+2020-02-03 11:19:17 INFO::Creating boxplot for catgorical data, Diet vs Photobacterium
+2020-02-03 11:19:17 INFO::Creating boxplot for catgorical data, Diet vs Vagococcus
+2020-02-03 11:19:18 INFO::Creating boxplot for catgorical data, Diet vs Erysipelatoclostridium
+2020-02-03 11:19:18 INFO::Creating boxplot for catgorical data, Diet vs Brevinema andersonii
+2020-02-03 11:19:18 INFO::Creating boxplot for catgorical data, Diet vs Flavobacterium
+2020-02-03 11:19:18 INFO::Creating boxplot for catgorical data, Diet vs Cellulosimicrobium
+2020-02-03 11:19:19 INFO::Creating boxplot for catgorical data, Diet vs Pseudomonas
+2020-02-03 11:19:19 INFO::Creating boxplot for catgorical data, Diet vs Anoxybacillus
+2020-02-03 11:19:19 INFO::Creating boxplot for catgorical data, Diet vs Mycoplasma
+2020-02-03 11:19:20 INFO::Creating boxplot for catgorical data, Diet vs Dietzia
+2020-02-03 11:19:20 INFO::Creating boxplot for catgorical data, Diet vs Streptococcus
+2020-02-03 11:19:20 INFO::Creating boxplot for catgorical data, Diet vs f__Corynebacteriaceae
+2020-02-03 11:19:20 INFO::Plotting data for metadata number 2, Sample_origin
+2020-02-03 11:19:20 INFO::Creating boxplot for catgorical data, Sample_origin vs Lysinibacillus
+2020-02-03 11:19:21 INFO::Creating boxplot for catgorical data, Sample_origin vs f__Bacillaceae
+2020-02-03 11:19:21 INFO::Creating boxplot for catgorical data, Sample_origin vs Brevinema andersonii
+2020-02-03 11:19:21 INFO::Creating boxplot for catgorical data, Sample_origin vs f__Lachnospiraceae
+2020-02-03 11:19:22 INFO::Creating boxplot for catgorical data, Sample_origin vs Gordonia
+2020-02-03 11:19:22 INFO::Creating boxplot for catgorical data, Sample_origin vs Brachybacterium
+2020-02-03 11:19:23 INFO::Creating boxplot for catgorical data, Sample_origin vs Enterococcus
+2020-02-03 11:19:23 INFO::Creating boxplot for catgorical data, Sample_origin vs f__Beutenbergiaceae
+2020-02-03 11:19:23 INFO::Creating boxplot for catgorical data, Sample_origin vs Leucobacter
+2020-02-03 11:19:23 INFO::Creating boxplot for catgorical data, Sample_origin vs Ornithinibacillus
+2020-02-03 11:19:24 INFO::Creating boxplot for catgorical data, Sample_origin vs Oceanobacillus
+2020-02-03 11:19:24 INFO::Creating boxplot for catgorical data, Sample_origin vs Lactobacillus
+2020-02-03 11:19:24 INFO::Creating boxplot for catgorical data, Sample_origin vs Bacillus
+2020-02-03 11:19:25 INFO::Creating boxplot for catgorical data, Sample_origin vs Corynebacterium 1
+2020-02-03 11:19:25 INFO::Creating boxplot for catgorical data, Sample_origin vs Gracilibacillus
+2020-02-03 11:19:25 INFO::Creating boxplot for catgorical data, Sample_origin vs Anoxybacillus
+2020-02-03 11:19:25 INFO::Creating boxplot for catgorical data, Sample_origin vs o__Lactobacillales
+2020-02-03 11:19:26 INFO::Creating boxplot for catgorical data, Sample_origin vs Flavobacterium
+2020-02-03 11:19:26 INFO::Creating boxplot for catgorical data, Sample_origin vs Dietzia
+2020-02-03 11:19:26 INFO::Creating boxplot for catgorical data, Sample_origin vs Rhodococcus
+2020-02-03 11:19:27 INFO::Creating boxplot for catgorical data, Sample_origin vs f__Enterococcaceae
+2020-02-03 11:19:27 INFO::Creating boxplot for catgorical data, Sample_origin vs Tepidimicrobium
+2020-02-03 11:19:27 INFO::Creating boxplot for catgorical data, Sample_origin vs o__Bacillales
+2020-02-03 11:19:27 INFO::Creating boxplot for catgorical data, Sample_origin vs Geobacillus
+2020-02-03 11:19:28 INFO::Creating boxplot for catgorical data, Sample_origin vs f__Spirochaetaceae
+2020-02-03 11:19:28 INFO::Creating boxplot for catgorical data, Sample_origin vs Globicatella
+2020-02-03 11:19:28 INFO::Creating boxplot for catgorical data, Sample_origin vs Paenibacillus
+2020-02-03 11:19:29 INFO::Creating boxplot for catgorical data, Sample_origin vs Peptostreptococcus
+2020-02-03 11:19:29 INFO::Creating boxplot for catgorical data, Sample_origin vs Mycoplasma
+2020-02-03 11:19:29 INFO::Creating boxplot for catgorical data, Sample_origin vs Leuconostoc
+2020-02-03 11:19:29 INFO::Creating boxplot for catgorical data, Sample_origin vs Vagococcus
+2020-02-03 11:19:30 INFO::Creating boxplot for catgorical data, Sample_origin vs Sphingobacterium
+2020-02-03 11:19:30 INFO::Creating boxplot for catgorical data, Sample_origin vs Ureibacillus
+2020-02-03 11:19:30 INFO::Creating boxplot for catgorical data, Sample_origin vs Macrococcus
+2020-02-03 11:19:30 INFO::Creating boxplot for catgorical data, Sample_origin vs Weissella
+2020-02-03 11:19:31 INFO::Creating boxplot for catgorical data, Sample_origin vs Clostridium sensu stricto 7
+2020-02-03 11:19:31 INFO::Creating boxplot for catgorical data, Sample_origin vs Staphylococcus
+2020-02-03 11:19:31 INFO::Creating boxplot for catgorical data, Sample_origin vs Streptococcus
+2020-02-03 11:19:32 INFO::Creating boxplot for catgorical data, Sample_origin vs Microbacterium
+2020-02-03 11:19:32 INFO::Creating boxplot for catgorical data, Sample_origin vs Photobacterium
+2020-02-03 11:19:32 INFO::Creating boxplot for catgorical data, Sample_origin vs Actinomyces
+2020-02-03 11:19:32 INFO::Creating boxplot for catgorical data, Sample_origin vs Brevibacterium
+2020-02-03 11:19:33 INFO::Creating boxplot for catgorical data, Sample_origin vs Glutamicibacter
+2020-02-03 11:19:33 INFO::Creating boxplot for catgorical data, Sample_origin vs f__Corynebacteriaceae
+2020-02-03 11:19:33 INFO::Creating boxplot for catgorical data, Sample_origin vs Pseudomonas
+2020-02-03 11:19:34 INFO::Creating boxplot for catgorical data, Sample_origin vs p__RsaHF231
+2020-02-03 11:19:34 INFO::Creating boxplot for catgorical data, Sample_origin vs Lactococcus
+2020-02-03 11:19:34 INFO::Creating boxplot for catgorical data, Sample_origin vs Cellulosimicrobium
+2020-02-03 11:19:34 INFO::Plotting data for metadata number 3, qPCR_immune_response
+2020-02-03 11:19:34 INFO::Creating scatter plot for continuous data, qPCR_immune_response vs Brevinema andersonii
+2020-02-03 11:19:35 INFO::Creating scatter plot for continuous data, qPCR_immune_response vs f__Sphingobacteriaceae
+2020-02-03 11:19:35 INFO::Creating scatter plot for continuous data, qPCR_immune_response vs Kurthia
+2020-02-03 11:19:35 INFO::Creating scatter plot for continuous data, qPCR_immune_response vs Actinomyces
+2020-02-03 11:19:36 INFO::Creating scatter plot for continuous data, qPCR_immune_response vs Microbacterium
+2020-02-03 11:19:36 INFO::Creating scatter plot for continuous data, qPCR_immune_response vs Lysobacter
+2020-02-03 11:19:36 INFO::Plotting data for metadata number 4, qPCR_barrier_function
+2020-02-03 11:19:36 INFO::Creating scatter plot for continuous data, qPCR_barrier_function vs Cellulosimicrobium
+2020-02-03 11:19:36 INFO::Creating scatter plot for continuous data, qPCR_barrier_function vs Glutamicibacter
+2020-02-03 11:19:37 INFO::Creating scatter plot for continuous data, qPCR_barrier_function vs f__Spirochaetaceae
+2020-02-03 11:19:37 INFO::Creating scatter plot for continuous data, qPCR_barrier_function vs Pseudomonas
+2020-02-03 11:19:37 INFO::Plotting data for metadata number 5, DISI
+2020-02-03 11:19:37 INFO::Creating scatter plot for continuous data, DISI vs Pseudomonas
+2020-02-03 11:19:38 INFO::Creating scatter plot for continuous data, DISI vs Acinetobacter
+2020-02-03 11:19:38 INFO::Plotting data for metadata number 6, Histology_lpc
+2020-02-03 11:19:38 INFO::Creating boxplot for catgorical data, Histology_lpc vs f__Sphingobacteriaceae
+2020-02-03 11:19:38 INFO::Creating boxplot for catgorical data, Histology_lpc vs p__RsaHF231

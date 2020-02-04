@@ -175,7 +175,7 @@ tab_merged %>%
   theme_minimal(base_size = 14) +
   theme(legend.position = "none")
 
-ggsave(here("result", "figures", "Figure S5.tiff"), width = 8, height = 5, 
+ggsave(here("result", "figures", "Figure S1.tiff"), width = 8, height = 5, 
        units = "in", dpi = 300, compression = "lzw")
 ```
 
@@ -282,7 +282,7 @@ contam_mock <- tab_merged %>%
 # Export Contaminating sequence IDs
 Now we export the featureIDs of Contaminating sequences for feature table filtering.
 ```{r export_contam}
-# Contaminating features for samples
+# Contaminating features for samples (Table S1)
 write.table(contam_sample, 
             file = here("data", "qiime2", "decontam", "contaminants-sample.tsv"), 
             quote = FALSE, 

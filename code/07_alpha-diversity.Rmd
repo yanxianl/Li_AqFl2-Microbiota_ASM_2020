@@ -62,7 +62,7 @@ Here, we compute the alpha-diversity via the `alpha()` and `pd()` function from 
 # We'll use species-level feature table for estimating alpha-diversity
 physeq_s <- tax_glom(physeq, "Species")
 
-# Compute Observed features, Peilou's Evenness and Shannon index
+# Compute Observed features, Peilou's Evenness and Shannon's index
 adiv_npd <- alpha(physeq_s, index = c("observed", "evenness_pielou", "diversity_shannon")) %>%
   rownames_to_column("SampleID")
 
@@ -74,11 +74,11 @@ adiv_pd <- pd(samp = t(otu_table(physeq_s)), tree = phy_tree(physeq), include.ro
 # Putting together
 adiv <- inner_join(adiv_npd, adiv_pd, by = "SampleID") %>%
   inner_join(rownames_to_column(metadata, "SampleID"), by = "SampleID") %>%
-  rename("Observed species" = observed, "Pielou's Evenness" = evenness_pielou, 
-         Shannon = diversity_shannon, "Faith's PD" = PD) %>%
-  gather("adiv", "value", "Observed species":"Faith's PD") %>%
+  rename("observed species" = observed, "Pielou's evenness" = evenness_pielou, 
+         "Shannon's index" = diversity_shannon, "Faith's PD" = PD) %>%
+  gather("adiv", "value", "observed species":"Faith's PD") %>%
   mutate(FishID = as.character(FishID), NetPen = as.character(NetPen), 
-         adiv = factor(adiv, levels = c("Observed species", "Pielou's Evenness", "Shannon", "Faith's PD")))
+         adiv = factor(adiv, levels = c("observed species", "Pielou's evenness", "Shannon's index", "Faith's PD")))
 ```
 
 # Plot alpha-diversity
@@ -112,7 +112,7 @@ Two of the fitted models are singular. Let's look at the fitted models and find 
 lme
 ```
 
-From the model outputs, we can see that the standard deviation of random effect `NetPen` for Observed species and Pielou's Evenness is zero, which indicates boundary fits. We'll update these models by removing `NetPen` from the models.
+From the model outputs, we can see that the standard deviation of random effect `NetPen` for observed species and Pielou's evenness is zero, which indicates boundary fits. We'll update these models by removing `NetPen` from the models.
 ```{r update-model, message=TRUE}
 lme <- lapply(lme, function(x) 
               if(is.null(x@optinfo$conv$lme4$messages)) {
@@ -141,7 +141,7 @@ lapply(
 )
 ```
 
-The residuals of Observed species and Faith's PD are not very good but we can live with that.
+The residuals of observed species and Faith's PD are not very good but we can live with that.
 
 ## Inference
 For the significance testing of fixed effects, the likelihood ratio test (LRT) is often used. However, it can produce anti-conservative *p* values in situations where the data is unbalanced or the number of parameters is large compared to the number of observations. A better alternative is to use F test with Satterthwaite/Kenward-Roger approximation available from the *lmerTest* package.
@@ -218,7 +218,7 @@ anno2 <- filter(p_cc, Diet != ".") %>%
 anno <- bind_rows(anno1, anno2) %>%
   select(adiv, start, end, p.value) %>%
   # the columns are arranged in a way that p value annotation starts from left to right
-  arrange(match(adiv, c("Observed species", "Pielou's Evenness", "Shannon", "Faith's PD")),
+  arrange(match(adiv, c("observed species", "Pielou's evenness", "Shannon's index", "Faith's PD")),
           match(start, c("REF-DIC", "REF-DIM", "IM-DIC")),
           match(end, c("REF-DIM", "IM-DIC"))) %>%
   # the following 4 lines of code convert p values to the corresponding asterisks
@@ -229,7 +229,7 @@ anno <- bind_rows(anno1, anno2) %>%
          # position of p value label on the y axis 
          y = c(180, 195, 210, 225),
          # ensure alpha-diversity indices are plotted in the desired order
-         adiv = factor(adiv, levels = c("Observed species", "Pielou's Evenness", "Shannon", "Faith's PD"))) 
+         adiv = factor(adiv, levels = c("observed species", "Pielou's evenness", "Shannon's index", "Faith's PD"))) 
 ```
 
 ## Annotate the plot

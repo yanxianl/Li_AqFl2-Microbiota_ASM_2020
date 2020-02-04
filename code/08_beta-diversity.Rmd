@@ -530,7 +530,7 @@ bps
 
 ```{r, include=FALSE}
 # Export the assembled boxplots
-ggsave(here("result", "figures", "Figure S6.tiff"), width = 10, height = 6,
+ggsave(here("result", "figures", "Figure S2.tiff"), width = 10, height = 6,
        units = "in", dpi = 300, compression = "lzw")
 ```
 

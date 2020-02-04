@@ -363,10 +363,10 @@ core_taxa_tab %>%
 ```
 
 ```{r, include=FALSE}
-# Export core taxa table as Table S3
+# Export core taxa table as Table S2
 core_taxa_tab %>%
   gt() %>%
-  tab_header(title = "Table S3. The core taxa of digesta- and mucosa-associated 
+  tab_header(title = "Table S2. The core taxa of digesta- and mucosa-associated 
                       distal gut microbiota in Atlantic salmon fed different diets.") %>%
   tab_spanner(label = "Taxonomy", columns = 1:6) %>%
   tab_spanner(label = "Prevalence", columns = 7:ncol(.)) %>%
@@ -378,7 +378,7 @@ core_taxa_tab %>%
   tab_style(style = list(cell_text(weight = "bold", size = 14), cell_borders(sides = "top", color = "white")),
             locations = cells_title(groups = "title")) %>%
   tab_options(table.font.size = 12, column_labels.font.size = 12, sourcenote.font.size = 12) %>%
-  gtsave(here("result", "tables", "Table S3.html"))
+  gtsave(here("result", "tables", "Table S2.html"))
 ```
 
 Convert feature prevalence to boolean values for plotting Venn's diagram

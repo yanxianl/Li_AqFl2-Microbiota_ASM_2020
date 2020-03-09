@@ -1,0 +1,1 @@
+This folder holds intermediate reuslts that can be used for downstream statistical analyses and visualization.

@@ -7,7 +7,7 @@ data/qiime2/*.qza
 data/qiime2/*/*.qza
 data/qiime2/decontam/*.biom
 data/qiime2/decontam/taxonomy.tsv
-data/raw/casava-18-paired-end-demultiplexed/*.fastq.gz
+data/raw/casava-18-paired-end-demultiplexed/*
 data/reference/silva*
 data/reference/*.biom
 

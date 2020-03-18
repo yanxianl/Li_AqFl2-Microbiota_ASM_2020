@@ -1,12 +1,6 @@
-Download the [latest release](https://github.com/SchlossLab/new_project/releases/latest) to the directory and decompress
+## Differential response of digesta- and mucosa-associated intestinal microbiota to dietary black soldier fly (*Hermetia illucens*) larvae meal in seawater phase Atlantic salmon (*Salmo salar*)
 
-
-## TITLE OF YOUR PAPER GOES HERE
-
-YOUR PAPER'S ABSTRACT GOES HERE
-
-
-
+Knowledge on the nutritional value of black soldier fly (Hermetia illucens) as a feed ingredient for fish is accumulating, yet less is known regarding how it may modulate fish intestinal microbiota. In a 16-week seawater feeding trial, Atlantic salmon (Salmo salar) were fed either a commercially-relevant reference diet, or an insect meal diet wherein black soldier fly larvae meal was included to replace all the fish meal and most of the pea protein concentrate in the reference diet. The digesta- and mucosa-associated distal intestinal microbiota were profiled by sequencing V1-2 regions of the 16S rRNA gene. Regardless of diet, we observed substantial differences between digesta- and mucosa-associated intestinal microbiota. Microbial richness and diversity were much higher in the digesta than the mucosa. The insect meal diet altered the distal intestinal microbiota assemblage resulting in higher microbial richness and diversity. The diet effect was dependent on the sample origin, with digesta-associated intestinal microbiota showing more pronounced changes than the mucosa-associated microbiota. Multivariate association analysis identified two mucosa-enriched taxa, Brevinema andersonii and unclassified Spirochaetaceae, associated with the expression of genes related to immune responses and barrier function in the distal intestine, respectively. The insect meal diet increased the relative abundance of several taxa that have been reported in fish, including Actinomyces, Bacillus, Brevibacterium, Corynebacterium 1 and Enterococcus. In conclusion, the response of digesta- and mucosa-associated intestinal microbiota to dietary inclusion of insect meal was different, with the latter being more resilient to the dietary change.
 
 ### Overview
 
@@ -48,18 +42,23 @@ YOUR PAPER'S ABSTRACT GOES HERE
 ### How to regenerate this repository
 
 #### Dependencies and locations
-* Gnu Make should be located in the user's PATH
-* mothur (v1.XX.0) should be located in the user's PATH
-* R (v. 3.X.X) should be located in the user's PATH
-* R packages:
-  * `knitr`
-  * `rmarkdown`
-* etc
-
-
+* Miniconda3 should be located in the home directory
+* grabseqs (0.7.0) should be installed via conda.
+* QIIME2 (2020.2) should be installed within a conda environment (qiime2-2020.2). Check the installation instructions [here](https://docs.qiime2.org/2020.2/install/native/).
+* R (3.6.3) should be located in the user's PATH
+* R packages: refer to the `SessionInfo`contained in the html files rendered from the RMarkdown files.
+  
 #### Running analysis
+All analysis should be run from the project's root directory.
+
+To begin with, run the following bash command to download
+
 
 ```
 git clone https://github.com/SchlossLab/LastName_BriefDescription_Journal_Year.git
 make write.paper
 ```
+### To-do list
+* Add a driver script to automate all the analysis, e.g., `make `or `snakemake`.
+* 
+### Acknowledgements

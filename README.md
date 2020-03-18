@@ -60,6 +60,6 @@ make write.paper
 ```
 ### To-do list
 * Add a driver script to automate all the analysis, e.g., `make `or `snakemake`.
-* 
+* Add a container image to make the anaylsis more reproducible.
 ### Acknowledgements
 The initial file and directory structure of this project was developed by a group of participants in the Reproducible Science Curriculum Workshop, held at [NESCent] in December 2014 ([rr-init repository]). The structure is based on, and heavily follows the one proposed by [Noble 2009], with a few but small modifications. All copyright and related and neighboring rights to the original template were dedicated to the public domain worldwide under the [CC0 Public Domain Dedication]. The template and its derivatives are distributed without any warranty. It has been further modified by Pat Schloss to fit the needs of his research group.

@@ -10,34 +10,33 @@ Knowledge on the nutritional value of black soldier fly (*Hermetia illucens*) as
 Here's an overview of the file organization in this project.
 ```
 root
-├── code
+├── code                              # all the scripts used for the analysis
 │   ├── functions                     # functions for automating tasks
 │   ├── utilities                     # utility scripts for miscellaneous tasks
 │   ├── 00_setup.bash                 # download raw and reference data for the analysis
-│   ├── 01_dada2.Rmd                  # sequence denoising by the DADA2 pipeline
-│   ├── 02_qiime2_part1.bash          # taxonomic assignment
-│   ├── 03_preprocessing.Rmd          # feature table filtering and contaminants removal    
-│   ├── 04_qiime2_part2.bash          #
-│   ├── 05_qiime2R.Rmd                #
-│   ├── 06_taxonomy.Rmd               #
-│   ├── 07_alpha-diversity.Rmd        #
-│   ├── 08_beta-diversity.Rmd         #
-│   ├── 09_metadata_association.Rmd   #
+│   ├── 01_dada2.Rmd                  # sequence denoising by the dada2 pipeline
+│   ├── 02_qiime2_part1.bash          # taxonomic assignment in qiime2
+│   ├── 03_preprocessing.Rmd          # feature table filtering and identification of contaminants    
+│   ├── 04_qiime2_part2.bash          # phylogeny and core-metrics-results
+│   ├── 05_qiime2R.Rmd                # export qiime2 artifacts into R
+│   ├── 06_taxonomy.Rmd               # taxonomic analysis
+│   ├── 07_alpha-diversity.Rmd        # alpha-diversity visualization and statistical analysis
+│   ├── 08_beta-diversity.Rmd         # beta-diversity visualization and statistical analysis
+│   ├── 09_metadata_association.Rmd   # association testing between microbial clades and sample metadata
 │   └── README.md
-├── data
-│   ├── metadata.tsv   #
-│   ├── raw            # 
-│   ├── reference      #  
-│   ├── qPCR           # 
-│   ├── dada2          # 
-│   ├── qiime2         # 
-│   ├── preprocessing  #
-│   ├── qiime2R        # 
-│   ├── permanova      #
-│   └── maaslin2       #
-├── image          # pictures/photos relevant to the analysis
-│   └── SBMIE.png 
-├── result         # final results published with the paper
+├── data               # all the data, including raw, reference and intermediate data generated from different steps of the pipeline
+│   ├── metadata.tsv   # sample metadata
+│   ├── raw            # raw sequence data and qPCR assay files
+│   ├── reference      # reference sequences/taxonomy (silva132); reference phylogenetic tree (silva128); theoretical mock composition
+│   ├── qPCR           # qPCR assay reports, plat-calibration and Cq values
+│   ├── dada2          # outputs from the dada2 pipeline including the representative sequences and feature table
+│   ├── qiime2         # outputs from the qiime2 pipeline
+│   ├── preprocessing  # plots for the identification of contaminants; filtered feature table   
+│   ├── qiime2R        # .RData containing outputs from qiime2
+│   ├── permanova      # input data and results of the PERMANOVA
+│   └── maaslin2       # default outputs from the maaslin2 program
+├── image   # pictures/photos relevant to the analysis  
+├── result  # final results published with the paper
 │   ├── figures    
 │   ├── tables     
 │   └── README.md 
@@ -61,7 +60,7 @@ git clone https://github.com/yanxianl/AquaFly-SeawaterGutHealth-Aquaculture-2019
 Run all the codes in the `code/` folder from the project's root directory. The codes are numbered by the order of execution.
 
 ### To-do list
-* Add a driver script to automate all the analysis, e.g., `make `or `snakemake`.
+* Add a driver script to automate all the analysis, e.g., `make ` or `snakemake`.
 
 ### Acknowledgements
-The initial file and directory structure of this project was by Pat Schloss to fit the needs of his research group.
+The initial file and directory structure of this project is based on the [template](https://github.com/SchlossLab/new_project/releases/latest) shared by [Dr. Pat Schloss](http://www.schlosslab.org/) to improve the reproducibility of microbiome data analysis. For trainings and tutorials on reproducible data analysis in microbiome research, check the [*Riffomonas*](http://www.riffomonas.org/) project.

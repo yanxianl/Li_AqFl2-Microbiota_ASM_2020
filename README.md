@@ -42,10 +42,10 @@ Knowledge on the nutritional value of black soldier fly (Hermetia illucens) as a
 ### How to regenerate this repository
 
 #### Dependencies and locations
-* Miniconda3 should be located in the home directory
-* grabseqs (0.7.0) should be installed via conda.
-* QIIME2 (2020.2) should be installed within a conda environment (qiime2-2020.2). Check the installation instructions [here](https://docs.qiime2.org/2020.2/install/native/).
-* R (3.6.3) should be located in the user's PATH
+* [Miniconda3](https://docs.conda.io/en/latest/miniconda.html) is located in the HOME directory.
+* [grabseqs (0.7.0)](https://github.com/louiejtaylor/grabseqs) should be installed via conda.
+* [QIIME2 (2020.2)](https://docs.qiime2.org/2020.2/) should be installed within a conda environment (qiime2-2020.2).
+* R (3.6.3) should be located in the user's PATH.
 * R packages: refer to the `SessionInfo`contained in the html files rendered from the RMarkdown files.
   
 #### Running analysis
@@ -62,3 +62,4 @@ make write.paper
 * Add a driver script to automate all the analysis, e.g., `make `or `snakemake`.
 * 
 ### Acknowledgements
+The initial file and directory structure of this project was developed by a group of participants in the Reproducible Science Curriculum Workshop, held at [NESCent] in December 2014 ([rr-init repository]). The structure is based on, and heavily follows the one proposed by [Noble 2009], with a few but small modifications. All copyright and related and neighboring rights to the original template were dedicated to the public domain worldwide under the [CC0 Public Domain Dedication]. The template and its derivatives are distributed without any warranty. It has been further modified by Pat Schloss to fit the needs of his research group.

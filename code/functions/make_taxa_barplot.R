@@ -1,5 +1,5 @@
 # The make_taxa_barplot() function is modified from the Microbiome.Barplot() function 
-# from the MicrobeR package developed by Jordan Bisanz.
+# from the MicrobeR (https://github.com/jbisanz/MicrobeR) package developed by Jordan Bisanz.
 
 #' Visualize taxonomy with a stacked bar plot
 #'

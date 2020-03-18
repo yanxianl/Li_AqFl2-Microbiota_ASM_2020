@@ -2,4 +2,4 @@ Distance matrix,REF-DIC  VS.  IM-DIC,REF-DIM  VS.  IM-DIM,REF-DIC  VS.  REF-DIM,
 Jaccard ,0.001,0.001,0.001,0.001
 Unweighted UniFrac ,0.001,0.001,0.001,0.001
 Aitchison ,0.001,0.003,0.004,0.001
-PHILR (Euclidean),0.001,0.069,0.001,0.001
+PHILR (Euclidean),0.001,0.005,0.001,0.001

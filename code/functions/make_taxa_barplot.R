@@ -99,7 +99,7 @@ make_taxa_barplot <- function(
   plot <- ggplot(forplot, aes(x = SampleID, y = Abundance, fill = Taxa)) +
             geom_bar(stat = "identity") +
             labs(x = "SampleID", y = "Relative abundance (%)") +
-            scale_y_continuous(breaks = 0:10*10, expand = expand_scale(mult = c(0, 0.02))) + 
+            scale_y_continuous(breaks = 0:10*10, expand = expansion(mult = c(0, 0.02))) + 
             theme_cowplot() +
             theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
                   #legend.justification = "top",
@@ -113,7 +113,7 @@ make_taxa_barplot <- function(
             ggplot(aes(x = !!group_by, y = Abundance_mean, fill = Taxa)) +
               geom_bar(stat = "identity") +
               labs(x = group_by, y = "Relative abundance (%)") +
-              scale_y_continuous(breaks = 0:10*10, expand = expand_scale(mult = c(0, 0.02))) + 
+              scale_y_continuous(breaks = 0:10*10, expand = expansion(mult = c(0, 0.02))) + 
               theme_cowplot() +
               theme(legend.text = element_text(size = 10), 
                     #legend.justification = "top",

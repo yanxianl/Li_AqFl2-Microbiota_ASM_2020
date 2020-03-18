@@ -48,12 +48,12 @@ set.seed(1910)
 
 Load data
 ```{r load-data}
-load(here("data", "processed", "phyloseq.RData"))
-load(here("data", "processed", "beta-diversity_distance.RData"))
-load(here("data", "processed", "beta-diversity_ordination.RData"))
+load(here("data", "qiime2R", "phyloseq.RData"))
+load(here("data", "qiime2R", "beta-diversity_distance.RData"))
+load(here("data", "qiime2R", "beta-diversity_ordination.RData"))
 
 # Extract metadata from the phyloseq object
-metadata <- data.frame(sample_data(physeq), check.names = FALSE)
+metadata <- data.frame(sample_data(phyloseq), check.names = FALSE)
 ```
 
 # Ordination
@@ -185,43 +185,43 @@ PhILR is short for "Phylogenetic Isometric Log-Ratio Transform". The goal of PhI
 ### Filter and transform the feature table
 In the original paper and *PhILR* pakcage tutorial, taxa that were not seen with more than 3 counts in at least 20% of samples or with a coefficient of variation ≤ 3 were filtered. For the present data set, we'll not do data filtering as it results in great loss of data. We'll just add a pseudocount of 1 to the feature table to avoid calculating log-ratios involving zeros. 
 
-```{r transform_physeq, message=FALSE, warning=FALSE}
-#physeq <- filter_taxa(physeq, function(x) sum(x > 3) > (0.2 * length(x)), TRUE)
-#physeq <- filter_taxa(physeq, function(x) sd(x)/mean(x) > 3.0, TRUE)
-physeq <- transform_sample_counts(physeq, function(x) x + 1)
+```{r transform_phyloseq, message=FALSE, warning=FALSE}
+#phyloseq <- filter_taxa(phyloseq, function(x) sum(x > 3) > (0.2 * length(x)), TRUE)
+#phyloseq <- filter_taxa(phyloseq, function(x) sd(x)/mean(x) > 3.0, TRUE)
+phyloseq <- transform_sample_counts(phyloseq, function(x) x + 1)
 ```
 
 ### Process phylogenetic tree
 Next we check that the tree is rooted and binary (all multichotomies have been resolved). 
 ```{r check_tree, message=FALSE, warning=FALSE}
-is.rooted(phy_tree(physeq)) # Is the tree Rooted?
-is.binary.tree(phy_tree(physeq)) # All multichotomies resolved?
+is.rooted(phy_tree(phyloseq)) # Is the tree Rooted?
+is.binary.tree(phy_tree(phyloseq)) # All multichotomies resolved?
 ```
 
 As the tree is not binary, we use the function `multi2di` from the `ape` package to replace multichotomies with a series of dichotomies with one (or several) branch(es) of zero length. 
 ```{r make_binary_tree, message=FALSE, warning=FALSE}
-phy_tree(physeq) <- multi2di(phy_tree(physeq)) 
-is.binary.tree(phy_tree(physeq)) 
+phy_tree(phyloseq) <- multi2di(phy_tree(phyloseq)) 
+is.binary.tree(phy_tree(phyloseq)) 
 ```
 
 Now we name the internal nodes of the tree so they are easier to work with. We prefix the node number with `n` and thus the root is named `n1`. 
 
 ```{r add_prefix, message=FALSE, warning=FALSE}
-phy_tree(physeq) <- makeNodeLabel(phy_tree(physeq), method = "number", prefix = 'n')
+phy_tree(phyloseq) <- makeNodeLabel(phy_tree(phyloseq), method = "number", prefix = 'n')
 ```
 
 We note that the tree is already rooted with Bacteria as the outgroup and no multichotomies are present. This uses the function `name.balance` from the `philr` package. This function uses a simple voting scheme to find a consensus naming for the two clades that descend from a given balance. Specifically for a balance named `x/y`, `x` refers to the consensus name of the clade in the numerator of the log-ratio and `y` refers to the denominator. 
 ```{r check_branch_name}
-name.balance(phy_tree(physeq), tax_table(physeq), 'n1')
+name.balance(phy_tree(phyloseq), tax_table(phyloseq), 'n1')
 ```
 
 ### Investigate dataset components
 Finally we transpose the ASV table (`philr` uses the conventions of the `compositions` package for compositional data analysis in R, taxa are columns, samples are rows). Then we will take a look at part of the dataset in more detail.
 ```{r check_objects}
-table_philr <- t(otu_table(physeq))
+table_philr <- t(otu_table(phyloseq))
 table_philr[1:2,1:2] 
 
-tree <- phy_tree(physeq)
+tree <- phy_tree(phyloseq)
 tree 
 ```
 
@@ -253,7 +253,7 @@ Euclidean distance in PhILR space can be used for ordination analysis. First we 
 dist_philr <- dist(philr, method = "euclidean")
 
 # Ordination by PCoA
-ord_philr <- ordinate(physeq, 'PCoA', distance = dist_philr)
+ord_philr <- ordinate(phyloseq, 'PCoA', distance = dist_philr)
 ```
 
 Extract principal coordinates and variance explained for plotting.
@@ -332,12 +332,12 @@ lapply(
   # Export PHILR distance directly
   if(grepl("philr", names(dist)[x])){
     write.table(as.data.frame(as.matrix(dist[[x]])), 
-                here("data", "processed", paste0(names(dist)[x], ".tsv")), 
+                here("data", "permanova", paste0(names(dist)[x], ".tsv")), 
                 sep = "\t", col.names = NA, row.names = TRUE)
   } else {
   # For the other distance matrices: extract distance matrix firt, then export  
     write.table(as.data.frame(as.matrix(dist[[x]]$data)), 
-                here("data", "processed", paste0(names(dist)[x], ".tsv")), 
+                here("data", "permanova", paste0(names(dist)[x], ".tsv")), 
                 sep = "\t", col.names = NA, row.names = TRUE)} 
   }
 )
@@ -365,7 +365,9 @@ permanova_contrasts <- column_to_rownames(permanova_contrasts, "Distance matrix"
 permanova <- full_join(permanova_main, permanova_contrasts, by = "Distance matrix") %>%
   gt() %>%
   tab_header(title = "PERMANOVA") %>%
-  tab_footnote(footnote = "Monte Carlo p value",
+  tab_footnote(footnote = md("Monte Carlo *p* value"),
+               locations = cells_data(columns = c(2, 5), rows = 2)) %>%
+  tab_footnote(footnote = md("Monte Carlo *p* value"),
                locations = cells_data(columns = c(7, 8), rows = 3)) %>%
   tab_spanner(label = "Main effects", columns = 2:3) %>%
   tab_spanner(label = "Conditional contrasts", columns = 5:ncol(.)) %>%
@@ -523,8 +525,7 @@ gtsave(permdisp, here("result", "tables", "Table 2.html"))
 ### Boxplot
 Assemble boxplots
 ```{r, fig.width=10, fig.height=6}
-bps <- plot_grid(bp_jac, bp_uwuf, bp_aitchison, bp_philr,
-                 ncol = 2, labels = "AUTO", align = 'vh')
+bps <- plot_grid(bp_jac, bp_uwuf, bp_aitchison, bp_philr, ncol = 2, labels = "AUTO", align = 'vh')
 bps
 ```
 

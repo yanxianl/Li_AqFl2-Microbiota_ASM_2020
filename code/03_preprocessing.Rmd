@@ -1,0 +1,363 @@
+---
+title: "Feature table preprocessing"
+author: Yanxian Li
+date: "`r Sys.time()`"
+output: 
+  html_document: 
+    self_contained: true
+    toc: true
+    toc_float: true
+    toc_depth: 4
+  pdf_document: 
+    latex_engine: xelatex
+  word_document: default
+---
+
+<style>
+pre code, pre, code {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+  word-break: keep-all !important;
+  word-wrap: initial !important;
+}
+</style>
+
+```{r style, echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+options(width=150) 
+opts_chunk$set(message=FALSE, error=FALSE, warning=FALSE, cache=TRUE)
+```
+
+# Getting ready
+## Load packages
+```{r}
+library(here) # [CRAN] A replacement for 'file.path()', locating the files relative to the project root.
+library(qiime2R) # [github::jbisanz/qiime2R] # import qiime2 artifacts to R
+library(tidyverse) # [CRAN] Easily Install and Load the 'Tidyverse'
+library(phyloseq) # [Bioconductor] Handling and analysis of microbiome data 
+library(biomformat) # [Bioconductor] An interface package for the BIOM file format
+```
+
+## Load functions
+```{r}
+source(here("code", "functions", "plot_frequency.R"))
+source(here("code", "functions", "plot_prevalence.R"))
+```
+
+## Data wrangling
+### Metadata
+```{r}
+metadata <- read_tsv(here("data", "metadata.tsv"), comment = "#q2") 
+metadata <- rename(metadata, SampleID = "#SampleID") %>%
+  mutate(SampleType = factor(SampleType, c("REF-DIC", "REF-DIM", "IM-DIC", "IM-DIM", 
+                                           "Extraction-blank", "Library-blank", "Mock"))) %>%
+  arrange(SampleType) %>%
+  mutate(SampleName = factor(SampleName, unique(SampleName)))
+```
+
+### Feature table
+```{r}
+table <- read_qza(here("data", "qiime2", "table.qza"))
+count_tab <- table$data %>% as.data.frame() 
+```
+
+### Taxonomy
+```{r}
+taxonomy <- read_qza(here("data", "qiime2", "taxonomy-silva132.qza"))
+tax_tab <- taxonomy$data %>% 
+  as.data.frame() %>%
+  mutate(Taxon = gsub("D_0", "k", Taxon), Taxon = gsub("D_1", "p", Taxon),
+         Taxon = gsub("D_2", "c", Taxon), Taxon = gsub("D_3", "o", Taxon),
+         Taxon = gsub("D_4", "f", Taxon), Taxon = gsub("D_5", "g", Taxon),
+         Taxon = gsub("D_6", "s", Taxon)) %>%
+  separate(Taxon, sep = ";", c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")) %>% 
+  column_to_rownames("Feature.ID") %>%
+  select(-Confidence)
+```
+
+### Phyloseq object
+```{r}
+ps <- phyloseq(sample_data(column_to_rownames(metadata, "SampleID")),
+               otu_table(as.matrix(count_tab), taxa_are_rows = TRUE),
+               tax_table(as.matrix(tax_tab)))
+
+ps_tss <- transform_sample_counts(ps, function(x){x / sum(x)}) # total sum scaling
+```
+
+# Taxonomy-based filtering
+Remove features without a phylum-level annotation and those assigned as chloroplast or mitochondria. Note that the taxonomic labels are database specific and may change in different versions of the same database. Make sure you're using the correct taxonomic labels to remove chloroplast and mitochondria.
+```{r}
+ps_tss <- subset_taxa(ps_tss, !is.na(Phylum) & !Phylum %in% c("", "uncharacterized")) %>%
+  subset_taxa(Order != "o__Chloroplast"|is.na(Order)) %>%
+  subset_taxa(Family != "f__Mitochondria"|is.na(Family))
+```
+
+# Prevalence-based filtering
+Features that show up in only one or a few samples may not represent real biological diversity but rather PCR/sequencing errors (such as PCR chimeras) or reagent contaminants.
+```{r}
+ps_tss <- subset_samples(ps_tss, !SampleType %in% c("Extraction-blank", "Library-blank")) %>%
+  # remove features present in only one sample
+  filter_taxa(., function(x) sum(x > 0) > 1, TRUE) %>%
+  taxa_names() %>%
+  prune_taxa(ps_tss)
+```
+
+# Filter contaminants
+Reagent contamination is unavoidable and study-specific, which can critically influence sequencing-based microbiome analyses. The screening of reagent contaminants will be based on two typical characteristics of contaminanting sequences as outlined in the paper [Simple statistical identification and removal of contaminant sequences in marker-gene and metagenomics data](https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-018-0605-2): they are likely to have frequencies that inversely correlate with sample DNA concentration and are likely to have higher prevalence in control samples than in true samples. The authors developed an R package, [*decontam*](https://github.com/benjjneb/decontam), for removing contaminating sequences in the marker-gene and shotgun metagenomics data. The package, however, does not make use of positive controls for the identification of contaminating sequences. As removing of features may critically affect downstream analyses, we'll do it by manual screening based on the aforementioned principles.
+
+## Inspect bacterial DNA concentration
+Before we proceed with the identification of contaminating features, let's look at the Cq values of the DNA templates used for the amplicon PCR. The bacterial DNA was quantified by qPCR using [a universal primer set](https://www.nature.com/articles/nature24460) targetting the bacterial 16S rRNA gene. The standard curve was generated using the [Femto bacterial DNA standards](https://www.zymoresearch.com/collections/femto-dna-quantification-kits/products/femto-bacterial-dna-quantification-kit) purified from the *E. coli* strain JM109. Since the Cq values of most mucosa-associated samples are out of the linear range of the standard curve, the Cq value is used as a proxy of 16S rRNA gene quantity, which is good enough for the screening of contaminating sequences. 
+
+```{r}
+metadata %>%
+  filter(SampleType!= "Library-blank") %>%
+  # calculate mean Cq values for each sample type for text annotation
+  group_nest(SampleType) %>%
+  mutate(cq_mean = map_dbl(data, ~mean(.x$qPCRCqValue)), cq_mean = round(cq_mean, 1)) %>%
+  unnest(cols = c(data)) %>%
+  ggplot(aes(x = SampleType, y = qPCRCqValue)) +
+  geom_jitter(aes(colour = SampleType), shape = 16, position = position_jitter(0.1)) +
+  geom_label(aes(y = cq_mean, label = cq_mean), size = 3, nudge_x = 0.3) +
+  stat_summary(fun.data = "mean_sdl", fun.args = list(mult = 1), geom = "pointrange") + 
+  labs(x = "Sample type", y = "Cq value") +
+  scale_colour_brewer(palette = "Paired") +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+  
+# save plot as Figure S1
+ggsave(here("result", "figures", "Figure S1.tiff"), width = 8, height = 5, 
+       units = "in", dpi = 300, compression = "lzw")
+```
+
+Note that the extacted genomic DNA of the intestinal contents and mucosa were diluted 1:2 and 1:32, respectively, before running the amplicon PCR. The Cq values only reflect the bacterial DNA concentration in the DNA templates used for the amplicon PCR. 
+
+## Identify reagent contaminants
+### Data wrangling
+Make a dataframe containing features present in the negative controls and mock samples.
+```{r}
+decontam <- ps_tss %>%
+  # the following 4 lines remove features not present in the control samples
+  subset_samples(SampleType %in% c("Extraction-blank", "Library-blank", "Mock")) %>%
+  filter_taxa(., function(x) sum(x > 0) > 0, TRUE) %>%
+  taxa_names() %>%
+  prune_taxa(ps_tss) %>%
+  # convert the phyloseq object into a tidy style dataframe
+  psmelt() %>%
+  unite("tax", Kingdom:Species, sep = "; ") %>%
+  arrange(OTU, SampleType, SampleName) %>%
+  mutate(Abundance = Abundance * 100,
+         SampleName = factor(SampleName, unique(SampleName))) 
+
+# sort the features based on their abundance in the negative controls  
+otu_sorted <- filter(decontam, SampleType %in% c("Extraction-blank", "Library-blank")) %>%
+  group_nest(OTU) %>%
+  mutate(taxa_sum = map(data, ~sum(.x$Abundance))) %>%
+  unnest(taxa_sum) %>%
+  arrange(desc(taxa_sum))
+
+# arrange features by their abundance in the negative controls
+decontam <- mutate(decontam, OTU = factor(OTU, otu_sorted$OTU)) %>% arrange(OTU)
+```
+
+### Prevalence-based classification
+Here we use barplots to visualize the abundance and prevalence of the features found in the control samples.
+```{r, results='hide'}
+# split the dataframe by feature ID
+decontam_spl1 <- group_split(decontam, OTU)
+
+# make barplots
+pdf(here("data", "preprocessing", "decontam", "prevalence_contam.pdf"), width = 16, height = 10) 
+
+lapply(seq_along(decontam_spl1), function(x){
+  # make a bar plot without mock
+  p1 <- filter(decontam_spl1[[x]], SampleType != "Mock") %>%
+    plot_prevalence(x = SampleName, y = Abundance, bar_color = SampleType,
+                    xlab = "Sample name", ylab = "Relative abundance (%)", 
+                    title = unique(decontam_spl1[[x]][, "tax"]))
+  
+  # make a bar plot with mock only
+  p2 <- filter(decontam_spl1[[x]], SampleType == "Mock") %>%
+    plot_prevalence(x = SampleName, y = Abundance, bar_color = SampleType, xlab = "", ylab = "")
+  
+  # assemble plots
+  plot_grid(p1, p2 + theme(legend.position = "none"), nrow = 1, align = 'h', axis = "bt", rel_widths = c(13, 1))
+  }
+)
+
+dev.off() 
+```
+
+### Frequency-based classification 
+Here we visualize correlations between the Cq values and the relative abundance of features found in the control samples. Features showing positive correlations with Cq values are potential contaminating features introduced during the amplicon PCR, which is the main source of reagent contamiantion in this study.
+```{r, results='hide'}
+# exclude samples with zero count
+decontam_spl2 <- filter(decontam, Abundance != 0) %>% group_split(OTU)
+
+# make correlation plots
+pdf(here("data", "preprocessing", "decontam", "frequency_contam.pdf"), width = 16, height = 12) 
+
+lapply(seq_along(decontam_spl2), function(x){
+  # extract taxonomy as the plot title
+  main <- ggdraw() + draw_label(unique(decontam_spl2[[x]]$tax), fontface='bold')
+  
+  # correlation with all samples
+  p1 <- filter(decontam_spl2[[x]], SampleType != "Library-blank") %>%
+    plot_frequency(x = qPCRCqValue, y = Abundance, point_color = SampleType, 
+                   xlab = "Cq value", ylab = "Relative abundance (%)", 
+                   title = "Correlation with all samples", type = "nonparametric")
+ 
+   # correlation within each sample type
+  p2 <- decontam_spl2[[x]] %>%
+    filter(!SampleType %in% c("Extraction-blank", "Library-blank", "Mock")) %>%
+    plot_frequency(x = qPCRCqValue, y = Abundance, facet_wrap = SampleType, facet_ncol = 2, 
+                   type = "nonparametric", xlab = "Cq value", ylab = "Relative abundance (%)")
+  
+  # assemble plots
+  plot_grid(main, p1, p2, ncol = 1, rel_heights = c(1, 10, 12))
+  }
+)
+
+dev.off() 
+```
+
+### Gather contaminating features 
+After inspecting the feature prevalence barplots and the correlation plots, the following features are considered as reagent contaminants:
+```{r}
+# get the feature IDs of Pseudomonas that are not reagent contaminants
+ex <- filter(decontam, grepl("Pseudomonas", tax)) %>%
+  group_by(OTU, SampleType) %>%
+  summarize(n_not_zero = sum(Abundance != 0)) %>%
+  pivot_wider(names_from = SampleType, values_from = n_not_zero) %>%
+  filter(`IM-DIC` == 18 & `Library-blank` == 0 | Mock == 2 & `Library-blank` == 0)
+
+# gather contaminating features using their taxonomic labels
+contam <- select(decontam, OTU, tax) %>%
+  distinct() %>%
+  filter(OTU != ex$OTU) %>%
+  filter(grepl("Pseudomonas|Cutibacterium|Curtobacterium|Jeotgalicoccus|Modestobacter|
+               |Hymenobacter|Brevundimonas|Micrococcus|Sphingomonas|Devosia|Marinobacter|
+               |Acidovorax|Obscuribacterales|Arthrobacter", tax))
+```
+
+Check the distibution of contaminating features among samples.
+```{r, fig.width=16, fig.height=10}
+prune_taxa(taxa_names(ps_tss) %in% contam$OTU, ps_tss) %>%
+  plot_bar(x = "SampleName", fill = "Genus", title = "Distibution of contaminating features") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +  
+  theme_bw() +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+## Identify cross-contamination in the mock
+Besides reagent contamination, between-sample contamination, whether due to the "barcode swapping" and/or physical cross-contamination of samples, is also known to occur at low levels in molecular-based microbiome studies. The mock, [ZymoBIOMICS D6300](https://www.zymoresearch.com/collections/zymobiomics-microbial-community-standards/products/zymobiomics-microbial-community-standard), comes with a guaranteed impurity level of < 0.01% (by DNA abundance). As long as we observe any alien taxa present at > 0.01% in the mock, we can conclude that they are introduced during by the workflow. Thus, identifying contaminants in the mock samples is more straightforward, which can be done based on the taxonomic labels of the features and their abundance across all the samples.
+
+### Data wrangling
+Remove reagent contaminants identified in the previous section.
+```{r}
+ps_tss_nocontam <- prune_taxa(!taxa_names(ps_tss) %in% contam$OTU, ps_tss)
+```
+
+Make a dataframe containing features present in the mock samples.
+```{r}
+decontam_mock <- subset_samples(ps_tss_nocontam, SampleType == "Mock") %>%
+  filter_taxa(., function(x) sum(x > 0) > 0, TRUE) %>%
+  taxa_names() %>%
+  prune_taxa(ps_tss_nocontam) %>%
+  psmelt() %>%
+  unite("tax", Kingdom:Species, sep = "; ") %>%
+  arrange(OTU, SampleType, SampleName) %>%
+  mutate(Abundance = Abundance * 100,
+         SampleName = factor(SampleName, unique(SampleName))) 
+
+otu_sorted <- filter(decontam_mock, SampleType == "Mock") %>%
+  group_nest(OTU) %>%
+  mutate(taxa_sum = map(data, ~sum(.x$Abundance))) %>%
+  unnest(taxa_sum) %>%
+  arrange(desc(taxa_sum))
+
+decontam_mock <- mutate(decontam_mock, OTU = factor(OTU, otu_sorted$OTU)) %>% arrange(OTU)
+```
+
+### Prevalence and taxonomy based classification
+```{r, results='hide'}
+decontam_mock_spl <- group_split(decontam_mock, OTU)
+
+pdf(here("data", "preprocessing", "decontam", "prevalence_cross_contam.pdf"), width = 16, height = 10) 
+
+lapply(seq_along(decontam_mock_spl), function(x){
+  plot_prevalence(data = decontam_mock_spl[[x]], x = SampleName, y = Abundance, 
+                  bar_color = SampleType, xlab = "Sample name", ylab = "Relative abundance (%)", 
+                  title = unique(decontam_mock_spl[[x]][, "tax"])) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+ }
+)
+
+dev.off() 
+```
+
+### Gather contaminating features
+In addition to contaminants removed in the previous steps, the following features are considered as contaminants in the mock samples as well:
+```{r}
+contam_mock <- select(decontam_mock, OTU, tax) %>%
+  distinct() %>%
+  slice(-c(1:23)) %>%
+  filter(!grepl("Lactobacillus fermentum|Escherichia−Shigella", tax))
+```
+
+Check the distibution of contaminating features.
+```{r, fig.width=16, fig.height=10}
+prune_taxa(taxa_names(ps_tss) %in% contam_mock$OTU, ps_tss) %>%
+  plot_bar(x = "SampleName", fill = "Genus", title = "Cross-contaminating features in the mock samples") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw() +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+## Remove contaminants
+```{r}
+# remove reagent contaminants from all samples.
+ps_nocontam <- prune_taxa(taxa_names(ps_tss_nocontam), ps) 
+
+# remove between-sample contaminants from the mock samples
+ps_nocontam_mock <- subset_samples(ps_nocontam, SampleType == "Mock")
+ps_nocontam_mock <- prune_taxa(!taxa_names(ps_nocontam_mock) %in% contam_mock$OTU, ps_nocontam_mock)
+
+# merge phyoloseq object
+ps_nocontam <- subset_samples(ps_nocontam, SampleType != "Mock") %>%
+  merge_phyloseq(ps_nocontam_mock)
+```
+
+# Export data
+Export reagent contaminants as Table S1.
+```{r}
+# gather the reagent contamiants and their relative abundance in the control samples
+contam_ctrl <- prune_taxa(taxa_names(ps_tss) %in% contam$OTU, ps_tss) %>%
+  subset_samples(SampleType %in% c("Extraction-blank", "Library-blank", "Mock")) %>%
+  psmelt() %>%
+  rename(FeatureID = OTU) %>%
+  unite("Taxonomy", Kingdom:Species, sep = "; ") %>%
+  select(FeatureID, Taxonomy, Abundance, SampleName) %>%
+  mutate(FeatureID = factor(FeatureID, levels = unique(FeatureID)),
+         SampleName = gsub("EB", "Extraction-blank", SampleName),
+         SampleName = gsub("LB", "Library-blank", SampleName),
+         SampleName = gsub("M", "Mock", SampleName)) %>%
+  arrange(FeatureID, SampleName) %>%
+  pivot_wider(names_from = SampleName, values_from = Abundance) 
+
+# export data
+write.csv(contam_ctrl, here("result", "tables", "Table S1.csv"), row.names = FALSE)
+```
+
+Export the filtered feature table.
+```{r export_contam}
+otu_table(ps_nocontam) %>% 
+  as("matrix") %>%
+  make_biom() %>%
+  write_biom(here("data", "preprocessing", "table-filtered.biom"))
+```
+
+# Session information
+```{r session-info}
+sessionInfo()
+```

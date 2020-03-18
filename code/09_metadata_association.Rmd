@@ -56,15 +56,14 @@ library(Maaslin2)# [bitbucket::biobakery/maaslin2] Multivariate association anal
 source(here("code", "functions", "maaslin2_heatmap.R"))
 ```
 
-### Load data
+### Import data
 ```{r load_data}
-# Load data 
-load(here("data", "processed", "phyloseq.RData"))
+load(here("data", "qiime2R", "phyloseq.RData"))
 
 # Extract feature table, taxonomy and metadata from the phyloseq object
-count_tab <- as.data.frame(otu_table(physeq)) 
-tax_tab <- tax_table(physeq) %>% as("matrix") %>% as.data.frame()
-metadata <- data.frame(sample_data(physeq), check.names = FALSE) 
+count_tab <- as.data.frame(otu_table(phyloseq)) 
+tax_tab <- tax_table(phyloseq) %>% as("matrix") %>% as.data.frame()
+metadata <- data.frame(sample_data(phyloseq), check.names = FALSE) 
 ```
 
 ### Tidy sample metadata
@@ -149,7 +148,7 @@ The distibution of histological scores under each evaluation category can be qui
 ggplot(df_histo, aes(score)) +
     geom_histogram(stat = "count") +
     facet_wrap(~item) +
-    scale_y_continuous(limits = c(0, 30), breaks = 0:6*5, expand = expand_scale(mult = c(0, 0.05))) +
+    scale_y_continuous(limits = c(0, 30), breaks = 0:6*5, expand = expansion(mult = c(0, 0.05))) +
     theme_cowplot() +
     theme(axis.text.x = element_text(angle = 45, hjust = 1),
           panel.grid.major.y = element_line(size = 0.5, linetype = 'dashed', colour = "black")) 
@@ -172,7 +171,7 @@ filter(metadata, SampleOrigin == "Mucosa") %>%
   ggplot(aes(score)) +
       geom_histogram(stat="count") +
       facet_wrap(~item) +
-      scale_y_continuous(limits = c(0, 30), breaks = 0:6*5, expand = expand_scale(mult = c(0, 0.05))) +
+      scale_y_continuous(limits = c(0, 30), breaks = 0:6*5, expand = expansion(mult = c(0, 0.05))) +
       theme_bw(base_size = 14) +
       theme(panel.grid.major.y = element_line(size = 0.5, linetype = 'dashed', colour = "black")) 
 ```
@@ -196,7 +195,7 @@ ggplot(metadata_imm, aes(x = lpc, y = quantity)) +
   geom_boxplot(outlier.shape = NA) +
   geom_point(aes(fill = lpc), size = 2, shape = 21, position = position_jitterdodge(0.2)) +
   facet_wrap(~gene, ncol = 4, scales = "free_y") +
-  scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.1))) + 
+  scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.1))) + 
   labs(x = "Histological score of lamina propria cellularity", y = "Quantity") +
   theme_bw(base_size = 14) +
   scale_fill_brewer(palette = "Dark2") +
@@ -223,6 +222,7 @@ de_imm <- metadata_imm %>%
          # get effect size: cohen's D
          es_lm  = map_dbl(data, ~cohensD(log(quantity) ~ lpc, data = .x, , method = "unequal"))) %>%
   select(gene, sf, p_lmm, p_lm, es_lmm, es_lm) %>%
+  ungroup() %>%
   mutate(p = ifelse(sf == "no", p_lmm, p_lm),
          p_adj = p.adjust(p, method = "fdr"),
          "Cohen's D" = ifelse(sf == "no", es_lmm, es_lm)) %>%
@@ -484,7 +484,7 @@ ggplot(sigAss_origin, aes(x = Sample_origin, y = abundance)) +
   geom_jitter(aes(colour = Diet), shape = 16, position = position_jitter(0.2)) +
   geom_text(aes(x = Inf, y = Inf, label = ann_boxplot), size = 2.5, hjust = 1, vjust = 1.05) +
   facet_wrap(~feature, ncol = 5, scales = "free_y") +
-  scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.6)), 
+  scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.6)), 
                      labels = scales::percent_format(accuracy = 0.1)) +   
   labs(x = "Sample origin", y = "Relative abundance") + 
   scale_color_manual(values = brewer.pal(n = 8, name = "Dark2")[c(3,4)]) +
@@ -523,7 +523,7 @@ ggplot(sigAss_diet, aes(x = Diet, y = abundance)) +
   geom_jitter(aes(colour = Sample_origin), shape = 16, position = position_jitter(0.2)) +
   geom_text(aes(x = Inf, y = Inf, label = ann_boxplot), size = 3, hjust = 1, vjust = 1.05) +
   facet_wrap(~feature, ncol = 5, scales = "free_y") +
-  scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.6)), 
+  scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.6)), 
                      labels = scales::percent_format(accuracy = 0.1)) +   
   labs(y = "Relative abundance", colour = "Sample origin") +
   scale_fill_brewer(palette = "Dark2") +
@@ -562,7 +562,7 @@ ggplot(sigAss_lpc, aes(x = Histology_lpc, y = abundance)) +
   geom_jitter(aes(colour = Sample_origin), shape = 16, position = position_jitter(0.2)) +
   geom_text(aes(x = Inf, y = Inf, label = ann_boxplot), size = 3, hjust = 1, vjust = 1.05) +
   facet_wrap(~feature, ncol = 2, scales = "free_y") +
-  scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.5)), 
+  scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.5)), 
                      labels = scales::percent_format(accuracy = 0.1)) +   
   labs(x = "Lamina propria cellularity in distal gut", y = "Relative abundance", 
        colour = "Sample origin") +  
@@ -584,7 +584,7 @@ filter(tab_sigAss, metadata == "DISI" ) %>%
     geom_point(aes(colour = Sample_origin), size = 2) +
     geom_text(aes(x = Inf, y = Inf, label = ann_scatter), size = 3, hjust = 1, vjust = 1.05) +
     facet_wrap(~feature, ncol = 2, scales = "free_y") +
-    scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.5)), 
+    scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.5)), 
                        labels = scales::percent_format(accuracy = 0.1)) +   
     labs(y = "Relative abundance", colour = "Sample origin") +   
     scale_fill_brewer(palette = "Dark2") +
@@ -604,7 +604,7 @@ filter(tab_sigAss, metadata == "qPCR_immune_response" ) %>%
     geom_point(aes(colour = Sample_origin), size = 2) +
     geom_text(aes(x = Inf, y = Inf, label = ann_scatter), size = 3, hjust = 1, vjust = 1.05) +
     facet_wrap(~feature, ncol = 3, scales = "free_y") +
-    scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.5)), 
+    scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.5)), 
                        labels = scales::percent_format(accuracy = 0.1)) +   
     labs(x = "qPCR: immune responses in distal gut (PC1 of PCA)", y = "Relative abundance",
          colour = "Sample origin") +  
@@ -619,13 +619,13 @@ ggsave(here("result", "figures", "Figure S7.tiff"), width = 9, height = 6,
 
 #### qPCR_barrier_function
 Make scatter plot for PC1 of barrier function relevant genes, color points by sample origin. Note that as the PC1 increases, the expression levels of barrier function relevant genes decrease (see PCA biplot above). Hence, a positive coefficient from the MaAsLin2 outputs is indicative of negative correlation between the microbial clades and expression levels of barrier function relevant genes, and vice versa.
-```{r scatter_plot_barr, fig.height=6, fig.width=6}
+```{r scatter_plot_barr, fig.height=3, fig.width=9}
 filter(tab_sigAss, metadata == "qPCR_barrier_function" ) %>%
   ggplot(aes(x = qPCR_barrier_function, y = abundance)) +
     geom_point(aes(colour = Sample_origin), size = 2) +
     geom_text(aes(x = Inf, y = Inf, label = ann_scatter), size = 3, hjust = 1, vjust = 1.05) +
-    facet_wrap(~feature, ncol = 2, scales = "free_y") +
-    scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.5)), 
+    facet_wrap(~feature, ncol = 3, scales = "free_y") +
+    scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.5)), 
                        labels = scales::percent_format(accuracy = 0.1)) +   
     labs(x = "qPCR: barrier function in distal gut (PC1 of PCA)", y = "Relative abundance",
          colour = "Sample origin") +  
@@ -634,7 +634,7 @@ filter(tab_sigAss, metadata == "qPCR_barrier_function" ) %>%
 ```
 
 ```{r, include=FALSE}
-ggsave(here("result", "figures", "Figure S8.tiff"), width = 6, height = 6,
+ggsave(here("result", "figures", "Figure S8.tiff"), width = 9, height = 3,
        units = "in", dpi = 300, compression = "lzw")
 ```
 
@@ -651,7 +651,7 @@ p_origin <- sigAss_origin %>%
   geom_jitter(aes(colour = Diet), shape = 16, position = position_jitter(0.1)) +
   geom_text(aes(x = Inf, y = Inf, label = ann_boxplot), size = 3, hjust = 1, vjust = 1.05) +
   facet_wrap(~feature, ncol = 2, scales = "free_y", labeller = label_parsed) +
-  scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.5)), 
+  scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.5)), 
                      breaks = 0:5*0.2, labels = scales::percent_format(accuracy = 1)) +
   scale_color_manual(values = brewer.pal(n = 8, name = "Dark2")[c(3,4)]) +
   labs(x = "Sample origin", y = "Relative abundance") + 
@@ -671,7 +671,7 @@ p_diet <- sigAss_diet %>%
     geom_jitter(aes(colour = Sample_origin), shape = 16, position = position_jitter(0.1)) +
     geom_text(aes(x = Inf, y = Inf, label = ann_boxplot), size = 3, hjust = 1, vjust = 1.05) +
     facet_wrap(~feature, ncol = 2, scales = "free_y") +
-    scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.6)),
+    scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.6)),
                        labels = scales::percent_format(accuracy = 1)) +  
     scale_color_manual(values = brewer.pal(n = 8, name = "Dark2")[c(1,2)]) +
     labs(color = "Sample origin", y = "Relative abundance") +
@@ -690,7 +690,7 @@ p_imm <- tab_sigAss %>%
     geom_point(aes(colour = Sample_origin), size = 2) +
     geom_text(aes(x = Inf, y = Inf, label = ann_scatter), size = 3, hjust = 1, vjust = 1.05) +
     facet_wrap(~feature, scales = "free_y") +
-    scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.3)), 
+    scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.3)), 
                        labels = scales::percent_format(accuracy = 1)) +   
     labs(x = "qPCR: immune responses (PC1 of PCA)", y = "Relative abundance",
          colour = "Sample origin") +  
@@ -711,7 +711,7 @@ p_barr <- tab_sigAss %>%
     geom_point(aes(colour = Sample_origin), size = 2) +
     geom_text(aes(x = Inf, y = Inf, label = ann_scatter), size = 3, hjust = 1, vjust = 1.05) +
     facet_wrap(~feature, scales = "free_y") +
-    scale_y_continuous(limits = c(0, NA), expand = expand_scale(mult = c(0, 0.35)), 
+    scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.35)), 
                        labels = scales::percent_format(accuracy = 1)) +   
     labs(x = "qPCR: barrier function (PC1 of PCA)", y = "Relative abundance",
          colour = "Sample origin") +  

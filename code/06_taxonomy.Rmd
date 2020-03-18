@@ -50,36 +50,36 @@ Load functions
 source(here("code", "functions", "make_taxa_barplot.R"))
 ```
 
-Load data
+Import data
 ```{r load-data}
-load(here("data", "processed", "phyloseq.RData"))
+load(here("data", "qiime2R", "phyloseq.RData"))
 
 # Extract feature table, taxonomy and metadata from the phyloseq object
-count_tab <- as.data.frame(otu_table(physeq)) 
-tax_tab <- tax_table(physeq) %>% as("matrix") %>% as.data.frame()
-metadata <- data.frame(sample_data(physeq), check.names = FALSE)
+count_tab <- as.data.frame(otu_table(phyloseq)) 
+tax_tab <- tax_table(phyloseq) %>% as("matrix") %>% as.data.frame()
+metadata <- data.frame(sample_data(phyloseq), check.names = FALSE)
 ```
 
-# Coverage of taxonomy assignments 
-First of all, let's look at the coverage of taxonomy assignments for the current data set.
+# Overview of taxonomy assignments 
+First of all, let's look at the coverage of taxonomy assignments at different levels.
 ```{r}
 tax_tab %>%
-  gather("Rank", "Name", rank_names(physeq)) %>%
+  gather("Rank", "Name", rank_names(phyloseq)) %>%
   group_by(Rank) %>%
   # Empty taxonomic ranks may be na or strings containing "uncultured" or "Ambiguous_taxa"
   summarize(ASVs_classified = sum(!is.na(Name) & !grepl("uncultured|Ambiguous|metagenome", Name))) %>%
-  mutate(Frac_classified = ASVs_classified / ntaxa(physeq),
+  mutate(Frac_classified = ASVs_classified / ntaxa(phyloseq),
          Frac_classified = ifelse(Frac_classified == 1, "100", round(Frac_classified * 100, 1)),
          Frac_classified = paste(Frac_classified, "%"),
-         Rank = factor(Rank, rank_names(physeq))) %>%
+         Rank = factor(Rank, rank_names(phyloseq))) %>%
   arrange(Rank) %>%
   datatable(options = list(columnDefs = list(list(className = 'dt-left', targets = c(0:3)))))
 ```
 
 We can tell that the majority of ASVs were assigned at the genus level whereas only 23% of ASVs got a species-level annotation.
 
-# Taxonomic composition of mock/blanks
-## Taxonomic composition of mock 
+# Taxonomic analysis: control samples
+## Mock 
 Import and tidy expected mock composition 
 ```{r}
 mock_exp <- read_tsv(here("data", "reference", "mock_expected.tsv"))   
@@ -91,7 +91,7 @@ mock_exp <- select(mock_exp, -"AqFl2-M2") %>%
 
 Import and tidy observed mock composition 
 ```{r}
-mock_obs <- read_qza(here("data", "qiime2", "mock-observed-no-contam-l7-rel.qza"))
+mock_obs <- read_qza(here("data", "qiime2", "quality-control", "mock-observed-l7-rel.qza"))
 mock_obs <- mock_obs$data %>%
   as.data.frame() %>%
   rownames_to_column("tax_obs") %>%
@@ -142,7 +142,7 @@ p_mock <- mock_merged %>%
   geom_bar(aes(fill = taxa), stat = "identity", width = 0.5) + 
   annotate("segment", x = 1.75, xend = 3.25, y = 102, yend = 102) +
   annotate("text", x = c(1, 2.5), y = c(105, 105), label = c("Expected", "Observed"), size = 4) +
-  scale_y_continuous(limits = c(0, 105), breaks = 0:10*10, expand = expand_scale(mult = c(0, 0.05))) +
+  scale_y_continuous(limits = c(0, 105), breaks = 0:10*10, expand = expansion(mult = c(0, 0.05))) +
   labs(x = "", y = "Relative abundance (%)", fill = "Taxa (expected (Gram stain) / observed)") +
   scale_fill_manual(values = brewer.pal(8, "Paired"), labels = labs_mock) +
   theme_minimal() +
@@ -152,62 +152,57 @@ p_mock <- mock_merged %>%
 p_mock
 ```
 
-## Taxonomic composition of blanks 
-Import and tidy table
+## Negative controls 
+Import and tidy data for making taxa barplot.
 ```{r}
-tab <- read_tsv(here("data", "qiime2", "decontam", "table-no-chlo-mito-lowPre-with-phyla-tax-rel.tsv"), 
-                skip = 1)
+# Import contaminating sequences found in the control samples
+neg <- read_csv(here("result", "tables", "Table S1.csv"))
 
-tab_neg <- tab %>% 
-  # sum up features found in the negative controls
-  mutate(ctrl = rowSums(.[grep("EB|LB", names(.))], na.rm = TRUE)) %>% 
-  # remove features not present in negative controls
-  filter(ctrl > 0) %>% 
-  select(taxonomy, matches('EB|LB'), ctrl) %>% 
-  # the following 7 lines of codes produce the lowest level of taxonomic rank for each feature
-  separate(taxonomy, sep = ";", c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")) %>% 
-  mutate(Class = ifelse(is.na(Class)|grepl("uncultured|Ambiguous|metagenome", Class), Phylum, Class), 
-         Order = ifelse(is.na(Order)|grepl("uncultured|Ambiguous|metagenome", Order), Class, Order),
-         Family = ifelse(is.na(Family)|grepl("uncultured|Ambiguous|metagenome", Family), Order, Family),
-         Genus = ifelse(is.na(Genus)|grepl("uncultured|Ambiguous|metagenome", Genus), Family, Genus),
-         Species = ifelse(is.na(Species)|grepl("uncultured|Ambiguous|metagenome", Species), Genus, Species)) %>%
+# tidy table
+neg <- select(neg, -contains("Mock")) %>%
+  # the next 3 lines remove features not present in the negative controls
+  mutate(taxa_sum = rowSums(.[grepl("blank", names(.))], na.rm = TRUE)) %>% 
+  filter(taxa_sum > 0) %>% 
+  select(-taxa_sum) %>% 
+  # the next 9 lines produce the lowest level of taxonomic rank for each feature
+  separate(Taxonomy, sep = ";", c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")) %>% 
+  mutate(Class = ifelse(grepl("NA|uncultured|Ambiguous|metagenome", Class), Phylum, Class), 
+         Order = ifelse(grepl("NA|uncultured|Ambiguous|metagenome", Order), Class, Order),
+         Family = ifelse(grepl("NA|uncultured|Ambiguous|metagenome", Family), Order, Family),
+         Genus = ifelse(grepl("NA|uncultured|Ambiguous|metagenome", Genus), Family, Genus),
+         Species = ifelse(grepl("NA|uncultured|Ambiguous|metagenome", Species), Genus, Species)) %>%
   select(-(Kingdom:Genus)) %>%
-  # add Greengenes style prefix to taxonomic ranks if species level annotation is not available
-  mutate(Species = gsub("D_1", "p", Species), Species = gsub("D_2", "c", Species), 
-         Species = gsub("D_3", "o", Species), Species = gsub("D_4", "f", Species), 
-         Species = gsub("D_5", "g", Species), Species = gsub("D_6__", "", Species)) %>%
   rename(taxonomy = Species) %>%
-  # the following 2 lines of codes collapse features by taxonomy
+  # remove taxonomic prefix from features with genus/species level annotation
+  mutate(taxonomy = gsub("g__|s__", "", taxonomy),
+         taxonomy = factor(taxonomy, levels = unique(taxonomy))) %>%
+  # the next 2 lines agglomerate features by taxonomic labels
   group_by(taxonomy) %>%
-  summarise_if(is.numeric, funs(sum)) %>%
+  summarise_if(is.numeric, ~sum(.x)) %>%
   # use percentage as unit for relative abundance
-  mutate_if(is.numeric, funs(100 * .))  %>% 
-  # sort features by their relative abundance
-  arrange(desc(ctrl)) %>%
-  select(-ctrl) %>%
-  # use the sorted order of taxa (high to low abundance) for plotting
-  mutate(taxonomy = factor(.$taxonomy, levels = unique(.$taxonomy))) 
+  mutate_if(is.numeric, ~.x * 100)
 ```
 
 Display taxa in the negative controls
 ```{r}
-tab_neg %>%
+neg %>%
   mutate_if(is.numeric, ~ifelse(.x != 0, round(.x, 4), .x)) %>%
   datatable(options = list(columnDefs = list(list(className = 'dt-left', targets = c(0:7))))) 
 ```
 
 Make stacked barplot
 ```{r}
-p_neg <- slice(tab_neg, 1:10) %>% # select the top 10 most abundance taxa for plotting
-  gather(key = "SampleID", value = "abundance", -taxonomy) %>%
-  mutate(SampleID = gsub("AqFl2-EB", "EB", SampleID), SampleID = gsub("AqFl2-LB", "LB", SampleID)) %>%
-  ggplot(aes(SampleID, abundance)) + 
+p_neg <- neg %>%
+  pivot_longer(-taxonomy, names_to = "SampleName", values_to = "Abundance") %>%
+  mutate(SampleName = gsub("Extraction-blank", "EB", SampleName), 
+         SampleName = gsub("Library-blank", "LB", SampleName)) %>%
+  ggplot(aes(SampleName, Abundance)) + 
   geom_bar(aes(fill = taxonomy), stat = "identity", width = 0.5) + 
   annotate("segment", x = c(0.75, 4.75), xend = c(4.25, 6.25), y = c(102, 102), yend = c(102,102)) +
   annotate("text", x = c(2.5, 5.5), y = c(105, 105), size = 4, label = c("Extraction blank", "Library blank")) +
-  scale_y_continuous(limits = c(0, 105), breaks = 0:10*10, expand = expand_scale(mult = c(0, 0.05))) +
+  scale_y_continuous(limits = c(0, 105), breaks = 0:10*10, expand = expansion(mult = c(0, 0.05))) +
   labs(x = "", y = "Relative abundance (%)", fill = "Taxa") +
-  scale_fill_manual(values = brewer.pal(10, "Paired"),
+  scale_fill_manual(values = brewer.pal(12, "Paired"),
                     guide = guide_legend(label.theme = element_text(face = "italic", size = 9))) +
   theme_minimal() +
   theme(panel.grid.major.y = element_line(size = 0.5, linetype = 'dashed', colour = "black"),
@@ -224,8 +219,8 @@ ggsave(here("result", "figures", "Figure 1.tiff"), width = 6, height = 8,
        units = "in", dpi = 300, compression = "lzw")
 ```
 
-# Taxonomic composition of samples  
-## Summarize taxonomy at phylum level 
+# Taxonomic analysis: biological samples  
+## Phylum-level 
 Collapse feature table at phylum level
 ```{r}
 tab_phy <- Summarize.Taxa(count_tab, tax_tab)$Phylum %>%
@@ -261,7 +256,7 @@ p_phy_mean <- make_taxa_barplot(table = tab_phy,
 p_phy_mean <- p_phy_mean + labs(x = "", y = "")
 ```
 
-## Summarize taxonomy at genus level 
+## Genus-level 
 Collapse feature table at genus level
 ```{r}
 tab_gen <- Summarize.Taxa(count_tab, tax_tab)$Genus %>%
@@ -309,7 +304,7 @@ p_gen_mean <- make_taxa_barplot(table = tab_gen,
 p_gen_mean <- p_gen_mean + labs(x = "", y = "")
 ```
 
-## Assemble taxa barplot 
+## Assemble plots 
 ```{r, fig.width=14, fig.height=10}
 plot_grid(p_phy_ind + theme(legend.position = "none"), 
           p_phy_mean + theme(axis.text.x = element_text(angle = 45, hjust = 1), 
@@ -329,13 +324,13 @@ ggsave(here("result", "figures", "Figure 2.tiff"), width = 14, height = 10,
 Calculate feature prevalence
 ```{r}
 # Collapse feature table at species level
-physeq_s <- tax_glom(physeq, "Species")
+phyloseq_s <- tax_glom(phyloseq, "Species")
 
 # Compute feature prevalence
-prev_rDic <- subset_samples(physeq_s, SampleType == "REF-DIC") %>% prevalence() 
-prev_rDim <- subset_samples(physeq_s, SampleType == "REF-DIM") %>% prevalence() 
-prev_iDic <- subset_samples(physeq_s, SampleType == "IM-DIC") %>% prevalence() 
-prev_iDim <- subset_samples(physeq_s, SampleType == "IM-DIM") %>% prevalence() 
+prev_rDic <- subset_samples(phyloseq_s, SampleType == "REF-DIC") %>% prevalence() 
+prev_rDim <- subset_samples(phyloseq_s, SampleType == "REF-DIM") %>% prevalence() 
+prev_iDic <- subset_samples(phyloseq_s, SampleType == "IM-DIC") %>% prevalence() 
+prev_iDim <- subset_samples(phyloseq_s, SampleType == "IM-DIM") %>% prevalence() 
 ```
 
 Get core features that are present in at least 80% samples under different sample types

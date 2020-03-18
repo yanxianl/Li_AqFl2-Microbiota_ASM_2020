@@ -1,5 +1,5 @@
 Distance matrix,Diet,Sample origin,Interaction
 Jaccard ,0.001,0.001,0.001
 Unweighted UniFrac ,0.001,0.001,0.001
-Aitchison ,0.001,0.006,0.005
+Aitchison ,0.001,0.003,0.004
 PHILR (Euclidean),0.001,0.001,0.001

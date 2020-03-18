@@ -3,26 +3,40 @@ title: "Sequence denoising with DADA2"
 author: Yanxian Li
 date: "`r Sys.time()`"
 output: 
-  BiocStyle::html_document: 
+  html_document: 
     self_contained: true
+    toc: true
     toc_float: true
-    number_sections: false
+    toc_depth: 3
+  pdf_document: 
+    latex_engine: xelatex
+  word_document: default
 ---
+
+<style>
+pre code, pre, code {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+  word-break: keep-all !important;
+  word-wrap: initial !important;
+}
+</style>
 
 ```{r style, echo=FALSE, message=FALSE, warning=FALSE, results="asis"}
 library("knitr")
 options(width=100) 
-opts_chunk$set(message=FALSE, error=FALSE, warning=FALSE)
+opts_chunk$set(message=FALSE, error=FALSE, warning=FALSE, cache=TRUE)
 ```
 
 # Getting ready
 First we load the necessary packages.
 ```{r, message=FALSE, warning=FALSE}
-library(dada2)
-library(here)
-library(tidyverse)
-library(cowplot)
-library(DT)
+library(here) # [CRAN] A replacement for 'file.path()', locating the files relative to the project root.
+library(dada2) # [Bioconductor] Accurate, high-resolution sample inference from amplicon sequencing data
+library(tidyverse) # [CRAN] Easily Install and Load the 'Tidyverse'
+library(DT) # [CRAN] An R interface to the DataTables library
+library(plotly) # [CRAN] Create interactive web graphics via 'plotly.js'
+library(biomformat) # [Bioconductor] An interface package for the BIOM file format
 
 # Set seed
 set.seed(1910)
@@ -162,7 +176,7 @@ ggplot(seqLen, aes(x=seqLen)) +
   scale_y_continuous(expand=expand_scale(mult=c(0, 0.05)), breaks=seq(0, 550, 50)) +
   labs(x="sequence length (bp)") +
   annotate("text", label="mean length", x=mean(seqLen$seqLen)-2, y=max(table(seqLen)), hjust=1, colour="blue") +
-  theme_cowplot() 
+  theme_bw() 
 ```
 
 **Considerations**: Sequences that are much longer or shorter than expected may be the result of non-specific priming. The sequence lengths fall within the range of the expected amplicon sizes, most of which fall between 263 and 367 with a long tail on the right. We'll just leave them as they are.
@@ -194,20 +208,22 @@ datatable(stats)
 ```
 
 Plot the sequences stats:
-```{r plot-stats, dev='tiff', dev.args=list(compression='lzw'), dpi=300}
-stats %>% 
+```{r plot-stats, fig.height=6, fig.width=8}
+p_stats <- stats %>% 
   as.data.frame() %>%
-  rownames_to_column("sampleID") %>%
-  mutate_if(is.numeric, funs(rel=100*./input)) %>% 
-  select(matches("sampleID"), ends_with("_rel")) %>%
-  gather(key="step", value="percent", -sampleID) %>%
-  mutate(step=gsub("_rel", "", step)) %>%
+  rownames_to_column("SampleID") %>%
+  mutate_at(vars("filtered":"nonchim"), ~100*.x/input) %>% 
+  mutate(input = 100) %>%
+  gather(key="step", value="percent", -SampleID) %>%
   mutate(step=factor(step, levels=c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim"))) %>%
-  ggplot(aes(x=step, y=percent)) +
+  ggplot(aes(x=step, y=percent, color=SampleID)) +
     geom_point() +
-    geom_line(aes(group=sampleID)) +
-    labs(x="", y="percent of sequences retained") +
-    theme_cowplot()
+    geom_line(aes(group=SampleID)) +
+    scale_y_continuous(breaks=0:10*10) +
+    labs(x="", y="Reads retained (%)") +
+    theme_bw()
+
+ggplotly(p_stats, tooltip=c("x", "y", "colour"))
 ```
 
 Looks good! We kept the majority of our raw reads, and there is no over-large drop associated with any single step.
@@ -217,8 +233,9 @@ Looks good! We kept the majority of our raw reads, and there is no over-large dr
 # Export data to QIIME2
 Export feature table:
 ```{r export-tab}
-write.table(t(seqtab.nochim), here("data", "dada2", "seqtab-nochim.txt"), 
-            sep="\t", row.names=TRUE, col.names=NA, quote=FALSE)
+t(seqtab.nochim) %>%
+  make_biom() %>%
+  write_biom(here("data", "dada2", "table.biom"))
 ```
 
 Export representative sequences:

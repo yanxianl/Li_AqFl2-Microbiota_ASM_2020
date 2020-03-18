@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
@@ -1344,7 +1343,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -1406,6 +1404,7 @@ summary {
   border: none;
   display: inline-block;
   border-radius: 4px;
+  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -1434,6 +1433,12 @@ summary {
 }
 }
 
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
 
 .toc-content {
   padding-left: 30px;
@@ -1506,7 +1511,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Import QIIME2 artifacts to R</h1>
 <h4 class="author">Yanxian Li</h4>
-<h4 class="date">2019-10-18 14:09:32</h4>
+<h4 class="date">2020-03-17 00:39:48</h4>
 
 </div>
 
@@ -1526,8 +1531,8 @@ library(tidyverse) # [CRAN] # Easily Install and Load the &#39;Tidyverse&#39;
 library(qiime2R) # [github::jbisanz/qiime2R] # import qiime2 artifacts to R 
 library(phyloseq) # [Bioconductor] Handling and analysis of high-throughput microbiome census data </code></pre>
 </div>
-<div id="building-a-phyloseq-object" class="section level1">
-<h1>Building a phyloseq object</h1>
+<div id="phyloseq" class="section level1">
+<h1>Phyloseq</h1>
 <div id="metadata" class="section level2">
 <h2>Metadata</h2>
 <pre class="r"><code>metadata &lt;- read_tsv(here(&quot;data&quot;, &quot;metadata.tsv&quot;), comment = &quot;#q2&quot;) 
@@ -1535,12 +1540,12 @@ library(phyloseq) # [Bioconductor] Handling and analysis of high-throughput micr
 metadata &lt;- metadata %&gt;% 
   rename(SampleID = &quot;#SampleID&quot;) %&gt;%
   # filter negative controls and mock from feature table
-  filter(!SampleType %in% c(&quot;Blank-extraction&quot;, &quot;Blank-library&quot;, &quot;Mock&quot;)) %&gt;%
+  filter(!SampleType %in% c(&quot;Extraction-blank&quot;, &quot;Library-blank&quot;, &quot;Mock&quot;)) %&gt;%
   mutate(SampleType = factor(SampleType, levels = c(&quot;REF-DIC&quot;, &quot;REF-DIM&quot;, &quot;IM-DIC&quot;, &quot;IM-DIM&quot;)))</code></pre>
 </div>
 <div id="feature-table" class="section level2">
 <h2>Feature table</h2>
-<pre class="r"><code>table &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;table-no-chlo-mito-lowPre-contam-ctrl-with-phyla.qza&quot;))
+<pre class="r"><code>table &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;table-filtered-sepp-inserted-no-control.qza&quot;))
 
 count_tab &lt;- table$data %&gt;% 
   as.data.frame() </code></pre>
@@ -1561,18 +1566,18 @@ tax_tab &lt;- taxonomy$data %&gt;%
 </div>
 <div id="phylogenetic-tree" class="section level2">
 <h2>Phylogenetic tree</h2>
-<pre class="r"><code>tree &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;rooted-tree.qza&quot;))</code></pre>
+<pre class="r"><code>tree &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;insertion-tree.qza&quot;))</code></pre>
 </div>
-<div id="build-a-phyloseq-object" class="section level2">
-<h2>Build a phyloseq object</h2>
-<pre class="r"><code>physeq &lt;- phyloseq(otu_table(as.matrix(count_tab), taxa_are_rows = T),
-                   phy_tree(tree$data), 
-                   tax_table(as.matrix(tax_tab)), 
-                   sample_data(metadata %&gt;% column_to_rownames(&quot;SampleID&quot;)))</code></pre>
+<div id="phyloseq-1" class="section level2">
+<h2>Phyloseq</h2>
+<pre class="r"><code>phyloseq &lt;- phyloseq(otu_table(as.matrix(count_tab), taxa_are_rows = T),
+                     phy_tree(tree$data), 
+                     tax_table(as.matrix(tax_tab)), 
+                     sample_data(metadata %&gt;% column_to_rownames(&quot;SampleID&quot;)))</code></pre>
 </div>
 </div>
-<div id="alpha-diversity-indices" class="section level1">
-<h1>Alpha-diversity indices</h1>
+<div id="alpha-diversity" class="section level1">
+<h1>Alpha-diversity</h1>
 <pre class="r"><code>obs &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;core-metrics-results&quot;, &quot;observed_otus_vector.qza&quot;))
 evn &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;core-metrics-results&quot;, &quot;evenness_vector.qza&quot;))
 shn &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;core-metrics-results&quot;, &quot;shannon_vector.qza&quot;))
@@ -1586,7 +1591,7 @@ pd &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;core-metrics-
 dist_bc &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;core-metrics-results&quot;, &quot;bray_curtis_distance_matrix.qza&quot;))
 dist_uwuf &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;core-metrics-results&quot;, &quot;unweighted_unifrac_distance_matrix.qza&quot;))
 dist_wuf &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;core-metrics-results&quot;, &quot;weighted_unifrac_distance_matrix.qza&quot;))
-dist_aitchison &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;robust-Aitchison-PCA&quot;, &quot;Aitchison-distance.qza&quot;))</code></pre>
+dist_aitchison &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;robust-Aitchison-pca&quot;, &quot;distance_matrix.qza&quot;))</code></pre>
 </div>
 <div id="ordination" class="section level2">
 <h2>Ordination</h2>
@@ -1594,29 +1599,29 @@ dist_aitchison &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;r
 ord_bc &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;core-metrics-results&quot;, &quot;bray_curtis_pcoa_results.qza&quot;))
 ord_uwuf &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;core-metrics-results&quot;, &quot;unweighted_unifrac_pcoa_results.qza&quot;))
 ord_wuf &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;core-metrics-results&quot;, &quot;weighted_unifrac_pcoa_results.qza&quot;))
-ord_aitchison &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;robust-Aitchison-PCA&quot;, &quot;rpca-ordination.qza&quot;))</code></pre>
+ord_aitchison &lt;- read_qza(here(&quot;data&quot;, &quot;qiime2&quot;, &quot;robust-Aitchison-pca&quot;, &quot;biplot.qza&quot;))</code></pre>
 </div>
 </div>
 <div id="export-data" class="section level1">
 <h1>Export data</h1>
 <pre class="r"><code># Phyloseq object
-save(physeq, file = here(&quot;data&quot;, &quot;processed&quot;, &quot;phyloseq.RData&quot;))
+save(phyloseq, file = here(&quot;data&quot;, &quot;qiime2R&quot;, &quot;phyloseq.RData&quot;))
 
 # Alpha-diversity indices
-save(obs, evn, shn, pd, file = here(&quot;data&quot;, &quot;processed&quot;, &quot;alpha-diversity_indices.RData&quot;))
+save(obs, evn, shn, pd, file = here(&quot;data&quot;, &quot;qiime2R&quot;, &quot;alpha-diversity_indices.RData&quot;))
 
 # Beta-diversity: distance metrics
 save(dist_jac, dist_bc, dist_uwuf, dist_wuf, dist_aitchison, 
-     file = here(&quot;data&quot;, &quot;processed&quot;, &quot;beta-diversity_distance.RData&quot;))
+     file = here(&quot;data&quot;, &quot;qiime2R&quot;, &quot;beta-diversity_distance.RData&quot;))
 
 # Beta-diversity: ordinations
 save(ord_jac, ord_bc, ord_uwuf, ord_wuf, ord_aitchison, 
-     file = here(&quot;data&quot;, &quot;processed&quot;, &quot;beta-diversity_ordination.RData&quot;))</code></pre>
+     file = here(&quot;data&quot;, &quot;qiime2R&quot;, &quot;beta-diversity_ordination.RData&quot;))</code></pre>
 </div>
 <div id="session-information" class="section level1">
 <h1>Session information</h1>
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>## R version 3.6.1 (2019-07-05)
+<pre><code>## R version 3.6.2 (2019-12-12)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
 ## Running under: Windows 10 x64 (build 18362)
 ## 
@@ -1630,22 +1635,22 @@ save(ord_jac, ord_bc, ord_uwuf, ord_wuf, ord_aitchison,
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] phyloseq_1.28.0 qiime2R_0.99.11 forcats_0.4.0   stringr_1.4.0   dplyr_0.8.3     purrr_0.3.2     readr_1.3.1     tidyr_0.8.3     tibble_2.1.3    ggplot2_3.2.0   tidyverse_1.2.1
-## [12] here_0.1        knitr_1.23     
+##  [1] phyloseq_1.28.0 qiime2R_0.99.11 forcats_0.5.0   stringr_1.4.0   dplyr_0.8.4     purrr_0.3.3     readr_1.3.1     tidyr_1.0.2     tibble_2.1.3    ggplot2_3.3.0   tidyverse_1.3.0
+## [12] here_0.1        knitr_1.28     
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] nlme_3.1-140        lubridate_1.7.4     RColorBrewer_1.1-2  httr_1.4.1          rprojroot_1.3-2     tools_3.6.1         backports_1.1.4     R6_2.4.0           
-##  [9] vegan_2.5-5         rpart_4.1-15        Hmisc_4.2-0         lazyeval_0.2.2      BiocGenerics_0.30.0 mgcv_1.8-28         colorspace_1.4-1    nnet_7.3-12        
-## [17] permute_0.9-5       ade4_1.7-13         withr_2.1.2         gridExtra_2.3       tidyselect_0.2.5    compiler_3.6.1      cli_1.1.0           rvest_0.3.4        
-## [25] Biobase_2.44.0      htmlTable_1.13.1    xml2_1.2.2          checkmate_1.9.4     scales_1.0.0        digest_0.6.20       foreign_0.8-71      rmarkdown_1.14     
-## [33] XVector_0.24.0      base64enc_0.1-3     pkgconfig_2.0.2     htmltools_0.3.6     htmlwidgets_1.3     rlang_0.4.0         readxl_1.3.1        rstudioapi_0.10    
-## [41] generics_0.0.2      jsonlite_1.6        acepack_1.4.1       magrittr_1.5        Formula_1.2-3       biomformat_1.12.0   Matrix_1.2-17       Rcpp_1.0.2         
-## [49] munsell_0.5.0       S4Vectors_0.22.0    Rhdf5lib_1.6.0      ape_5.3             stringi_1.4.3       yaml_2.2.0          MASS_7.3-51.4       zlibbioc_1.30.0    
-## [57] rhdf5_2.28.0        plyr_1.8.4          grid_3.6.1          parallel_3.6.1      crayon_1.3.4        lattice_0.20-38     Biostrings_2.52.0   haven_2.1.1        
-## [65] splines_3.6.1       multtest_2.40.0     hms_0.5.0           zeallot_0.1.0       pillar_1.4.2        igraph_1.2.4.1      reshape2_1.4.3      codetools_0.2-16   
-## [73] stats4_3.6.1        glue_1.3.1          evaluate_0.14       latticeExtra_0.6-28 data.table_1.12.2   modelr_0.1.4        vctrs_0.2.0         foreach_1.4.7      
-## [81] cellranger_1.1.0    gtable_0.3.0        assertthat_0.2.1    xfun_0.8            broom_0.5.2         survival_2.44-1.1   iterators_1.0.12    IRanges_2.18.1     
-## [89] cluster_2.1.0</code></pre>
+##  [1] nlme_3.1-145        fs_1.3.2            lubridate_1.7.4     RColorBrewer_1.1-2  httr_1.4.1          rprojroot_1.3-2     tools_3.6.2         backports_1.1.5    
+##  [9] R6_2.4.1            vegan_2.5-6         rpart_4.1-15        Hmisc_4.3-1         DBI_1.1.0           BiocGenerics_0.30.0 mgcv_1.8-31         colorspace_1.4-1   
+## [17] nnet_7.3-13         permute_0.9-5       ade4_1.7-15         withr_2.1.2         gridExtra_2.3       tidyselect_1.0.0    compiler_3.6.2      cli_2.0.2          
+## [25] rvest_0.3.5         Biobase_2.44.0      htmlTable_1.13.3    xml2_1.2.2          checkmate_2.0.0     scales_1.1.0        digest_0.6.25       foreign_0.8-72     
+## [33] rmarkdown_2.1       XVector_0.24.0      jpeg_0.1-8.1        base64enc_0.1-3     pkgconfig_2.0.3     htmltools_0.4.0     dbplyr_1.4.2        htmlwidgets_1.5.1  
+## [41] rlang_0.4.5         readxl_1.3.1        rstudioapi_0.11     generics_0.0.2      jsonlite_1.6.1      acepack_1.4.1       magrittr_1.5        Formula_1.2-3      
+## [49] biomformat_1.12.0   Matrix_1.2-18       Rcpp_1.0.3          munsell_0.5.0       S4Vectors_0.22.0    Rhdf5lib_1.6.0      fansi_0.4.1         ape_5.3            
+## [57] lifecycle_0.1.0     stringi_1.4.6       yaml_2.2.1          MASS_7.3-51.5       zlibbioc_1.30.0     rhdf5_2.28.0        plyr_1.8.6          grid_3.6.2         
+## [65] parallel_3.6.2      crayon_1.3.4        lattice_0.20-40     Biostrings_2.52.0   haven_2.2.0         splines_3.6.2       multtest_2.40.0     hms_0.5.3          
+## [73] pillar_1.4.3        igraph_1.2.4.2      reshape2_1.4.3      codetools_0.2-16    stats4_3.6.2        reprex_0.3.0        glue_1.3.1          evaluate_0.14      
+## [81] latticeExtra_0.6-29 data.table_1.12.8   modelr_0.1.6        png_0.1-7           vctrs_0.2.3         foreach_1.4.8       cellranger_1.1.0    gtable_0.3.0       
+## [89] assertthat_0.2.1    xfun_0.12           broom_0.5.5         survival_3.1-8      iterators_1.0.12    IRanges_2.18.1      cluster_2.1.0       ellipsis_0.3.0</code></pre>
 </div>
 
 

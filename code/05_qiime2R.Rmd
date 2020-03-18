@@ -36,7 +36,7 @@ library(qiime2R) # [github::jbisanz/qiime2R] # import qiime2 artifacts to R
 library(phyloseq) # [Bioconductor] Handling and analysis of high-throughput microbiome census data 
 ```
 
-# Building a phyloseq object
+# Phyloseq
 ## Metadata
 ```{r}
 metadata <- read_tsv(here("data", "metadata.tsv"), comment = "#q2") 
@@ -44,13 +44,13 @@ metadata <- read_tsv(here("data", "metadata.tsv"), comment = "#q2")
 metadata <- metadata %>% 
   rename(SampleID = "#SampleID") %>%
   # filter negative controls and mock from feature table
-  filter(!SampleType %in% c("Blank-extraction", "Blank-library", "Mock")) %>%
+  filter(!SampleType %in% c("Extraction-blank", "Library-blank", "Mock")) %>%
   mutate(SampleType = factor(SampleType, levels = c("REF-DIC", "REF-DIM", "IM-DIC", "IM-DIM")))
 ```
 
 ## Feature table
 ```{r}
-table <- read_qza(here("data", "qiime2", "table-no-chlo-mito-lowPre-contam-ctrl-with-phyla.qza"))
+table <- read_qza(here("data", "qiime2", "table-filtered-sepp-inserted-no-control.qza"))
 
 count_tab <- table$data %>% 
   as.data.frame() 
@@ -73,18 +73,18 @@ tax_tab <- taxonomy$data %>%
 
 ## Phylogenetic tree  
 ```{r}
-tree <- read_qza(here("data", "qiime2", "rooted-tree.qza"))
+tree <- read_qza(here("data", "qiime2", "insertion-tree.qza"))
 ```
 
-## Build a phyloseq object
+## Phyloseq
 ```{r}
-physeq <- phyloseq(otu_table(as.matrix(count_tab), taxa_are_rows = T),
-                   phy_tree(tree$data), 
-                   tax_table(as.matrix(tax_tab)), 
-                   sample_data(metadata %>% column_to_rownames("SampleID")))
+phyloseq <- phyloseq(otu_table(as.matrix(count_tab), taxa_are_rows = T),
+                     phy_tree(tree$data), 
+                     tax_table(as.matrix(tax_tab)), 
+                     sample_data(metadata %>% column_to_rownames("SampleID")))
 ```
 
-# Alpha-diversity indices
+# Alpha-diversity
 ```{r}
 obs <- read_qza(here("data", "qiime2", "core-metrics-results", "observed_otus_vector.qza"))
 evn <- read_qza(here("data", "qiime2", "core-metrics-results", "evenness_vector.qza"))
@@ -99,7 +99,7 @@ dist_jac <- read_qza(here("data", "qiime2", "core-metrics-results", "jaccard_dis
 dist_bc <- read_qza(here("data", "qiime2", "core-metrics-results", "bray_curtis_distance_matrix.qza"))
 dist_uwuf <- read_qza(here("data", "qiime2", "core-metrics-results", "unweighted_unifrac_distance_matrix.qza"))
 dist_wuf <- read_qza(here("data", "qiime2", "core-metrics-results", "weighted_unifrac_distance_matrix.qza"))
-dist_aitchison <- read_qza(here("data", "qiime2", "robust-Aitchison-PCA", "Aitchison-distance.qza"))
+dist_aitchison <- read_qza(here("data", "qiime2", "robust-Aitchison-pca", "distance_matrix.qza"))
 ```
 
 ## Ordination
@@ -108,24 +108,24 @@ ord_jac <- read_qza(here("data", "qiime2", "core-metrics-results", "jaccard_pcoa
 ord_bc <- read_qza(here("data", "qiime2", "core-metrics-results", "bray_curtis_pcoa_results.qza"))
 ord_uwuf <- read_qza(here("data", "qiime2", "core-metrics-results", "unweighted_unifrac_pcoa_results.qza"))
 ord_wuf <- read_qza(here("data", "qiime2", "core-metrics-results", "weighted_unifrac_pcoa_results.qza"))
-ord_aitchison <- read_qza(here("data", "qiime2", "robust-Aitchison-PCA", "rpca-ordination.qza"))
+ord_aitchison <- read_qza(here("data", "qiime2", "robust-Aitchison-pca", "biplot.qza"))
 ```
 
 # Export data 
 ```{r}
 # Phyloseq object
-save(physeq, file = here("data", "processed", "phyloseq.RData"))
+save(phyloseq, file = here("data", "qiime2R", "phyloseq.RData"))
 
 # Alpha-diversity indices
-save(obs, evn, shn, pd, file = here("data", "processed", "alpha-diversity_indices.RData"))
+save(obs, evn, shn, pd, file = here("data", "qiime2R", "alpha-diversity_indices.RData"))
 
 # Beta-diversity: distance metrics
 save(dist_jac, dist_bc, dist_uwuf, dist_wuf, dist_aitchison, 
-     file = here("data", "processed", "beta-diversity_distance.RData"))
+     file = here("data", "qiime2R", "beta-diversity_distance.RData"))
 
 # Beta-diversity: ordinations
 save(ord_jac, ord_bc, ord_uwuf, ord_wuf, ord_aitchison, 
-     file = here("data", "processed", "beta-diversity_ordination.RData"))
+     file = here("data", "qiime2R", "beta-diversity_ordination.RData"))
 ```
 
 # Session information

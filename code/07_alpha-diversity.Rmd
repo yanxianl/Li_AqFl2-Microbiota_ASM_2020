@@ -48,26 +48,26 @@ library(emmeans) # [CRAN] Post-hoc tests for fixed effects using least-squares m
 set.seed(1910)
 ```
 
-Load data
+Import data
 ```{r load-data}
-load(here("data", "processed", "phyloseq.RData"))
+load(here("data", "qiime2R", "phyloseq.RData"))
 
 # Extract metadata from the phyloseq object
-metadata <- data.frame(sample_data(physeq), check.names = FALSE)
+metadata <- data.frame(sample_data(phyloseq), check.names = FALSE)
 ```
 
 # Compute alpha-diversity
 Here, we compute the alpha-diversity via the `alpha()` and `pd()` function from the *microbiome* and *picante* package, respectively. 
 ```{r compute-adiv}
 # We'll use species-level feature table for estimating alpha-diversity
-physeq_s <- tax_glom(physeq, "Species")
+phyloseq_s <- tax_glom(phyloseq, "Species")
 
 # Compute Observed features, Peilou's Evenness and Shannon's index
-adiv_npd <- alpha(physeq_s, index = c("observed", "evenness_pielou", "diversity_shannon")) %>%
+adiv_npd <- alpha(phyloseq_s, index = c("observed", "evenness_pielou", "diversity_shannon")) %>%
   rownames_to_column("SampleID")
 
 # Compute Faith's Phylogenetic Diversity
-adiv_pd <- pd(samp = t(otu_table(physeq_s)), tree = phy_tree(physeq), include.root = F) %>%
+adiv_pd <- pd(samp = t(otu_table(phyloseq_s)), tree = phy_tree(phyloseq), include.root = F) %>%
   select(PD) %>%
   rownames_to_column("SampleID")
 
@@ -107,12 +107,12 @@ lme <- lapply(adiv_spl, function(x)
               lmer(log(value + 1) ~ Diet * SampleOrigin + (1|FishID) + (1|NetPen), data = x)) 
 ```
 
-Two of the fitted models are singular. Let's look at the fitted models and find out the singular fits.
+Three of the fitted models are singular. Let's look at the fitted models and find out the singular fits.
 ```{r find-singularFit}
 lme
 ```
 
-From the model outputs, we can see that the standard deviation of random effect `NetPen` for observed species and Pielou's evenness is zero, which indicates boundary fits. We'll update these models by removing `NetPen` from the models.
+From the model outputs, we can see that the standard deviation of random effect `NetPen` for observed species, Pielou's evenness and Faith's PD is zero, which indicates boundary fits. We'll update these models by removing the random effect `NetPen` from the models.
 ```{r update-model, message=TRUE}
 lme <- lapply(lme, function(x) 
               if(is.null(x@optinfo$conv$lme4$messages)) {
@@ -134,14 +134,14 @@ lapply(
     # Extract titles 
     main <- ggdraw() + draw_label(names(lme)[x], fontface='bold')
     # Make residual diagnostic plots
-    resid_panel <- resid_panel(lme[[x]], plots = "all", qqbands = T)
+    resid_panel <- resid_panel(lme[[x]], plots = "all", , qqbands = TRUE)
     # Assemble plots
     plot_grid(main, resid_panel, ncol = 1, rel_heights = c(1, 10))
   }
 )
 ```
 
-The residuals of observed species and Faith's PD are not very good but we can live with that.
+The homogeneity of variance for the observed species and Faith's PD is not very good, but we can live with that.
 
 ## Inference
 For the significance testing of fixed effects, the likelihood ratio test (LRT) is often used. However, it can produce anti-conservative *p* values in situations where the data is unbalanced or the number of parameters is large compared to the number of observations. A better alternative is to use F test with Satterthwaite/Kenward-Roger approximation available from the *lmerTest* package.
@@ -227,7 +227,7 @@ anno <- bind_rows(anno1, anno2) %>%
          p.value = ifelse(p.value >= 0.01 & p.value < 0.05, "*", p.value),
          p.value = ifelse(p.value >= 0.05, "NS", p.value),
          # position of p value label on the y axis 
-         y = c(180, 195, 210, 225),
+         y = c(180, 195, 210, 225, 46, 50, 54, 58),
          # ensure alpha-diversity indices are plotted in the desired order
          adiv = factor(adiv, levels = c("observed species", "Pielou's evenness", "Shannon's index", "Faith's PD"))) 
 ```
@@ -252,7 +252,7 @@ p_list <- lapply(
       theme(axis.text.x = element_text(angle = 45, hjust = 1),legend.position = "none") 
     
     # Add p values of conditional contrasts to the plot
-    if (grepl(x, levels(anno$adiv))) {
+    if (x %in% levels(anno$adiv)) {
       p <- p + geom_signif(data = filter(anno, adiv == x), 
                            aes(xmin = start, xmax = end, annotations = p.value, y_position = y),
                            map_signif_level = TRUE,

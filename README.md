@@ -8,62 +8,67 @@ Knowledge on the nutritional value of black soldier fly (Hermetia illucens) as a
 
 ### Overview
 
-	project
-	|- README          # the top level description of content (this doc)
-	|- CONTRIBUTING    # instructions for how to contribute to your project
-	|- LICENSE         # the license for this project
-	|
-	|- submission/
-	| |- study.Rmd    # executable Rmarkdown for this study, if applicable
-	| |- study.md     # Markdown (GitHub) version of the *.Rmd file
-	| |- study.tex    # TeX version of *.Rmd file
-	| |- study.pdf    # PDF version of *.Rmd file
-	| |- header.tex   # LaTeX header file to format pdf version of manuscript
-	| |- references.bib # BibTeX formatted references
-	| |- XXXX.csl     # csl file to format references for journal XXX
-	|
-	|- data           # raw and primary data, are not changed once created
-	| |- references/  # reference files to be used in analysis
-	| |- raw/         # raw data, will not be altered
-	| |- mothur/      # mothur processed data
-	| +- process/     # cleaned data, will not be altered once created;
-	|                 # will be committed to repo
-	|
-	|- code/          # any programmatic code
-	|
-	|- results        # all output from workflows and analyses
-	| |- tables/      # text version of tables to be rendered with kable in R
-	| |- figures/     # graphs, likely designated for manuscript figures
-	| +- pictures/    # diagrams, images, and other non-graph graphics
-	|
-	|- exploratory/   # exploratory data analysis for study
-	| |- notebook/    # preliminary analyses
-	| +- scratch/     # temporary files that can be safely deleted or lost
-	|
-	+- Makefile       # executable Makefile for this study, if applicable
-
-
+```
+root
+├── code
+│   ├── 00_setup.bash
+│   ├── 01_dada2.html
+│   ├── 01_dada2.Rmd
+│   ├── 02_qiime2_part1.bash
+│   ├── 03_preprocessing.html
+│   ├── 03_preprocessing.Rmd
+│   ├── 04_qiime2_part2.bash
+│   ├── 05_qiime2R.html
+│   ├── 05_qiime2R.Rmd
+│   ├── 06_taxonomy.html
+│   ├── 06_taxonomy.Rmd
+│   ├── 07_alpha-diversity.html
+│   ├── 07_alpha-diversity.Rmd
+│   ├── 08_beta-diversity.html
+│   ├── 08_beta-diversity.Rmd
+│   ├── 09_metadata_association.html
+│   ├── 09_metadata_association.Rmd
+│   ├── functions
+│   ├── utilities
+│   └── README.md
+├── data
+│   ├── metadata.tsv
+│   ├── raw 
+│   ├── reference 
+│   ├── qPCR 
+│   ├── dada2 
+│   ├── qiime2 
+│   ├── preprocessing
+│   ├── qiime2R
+│   ├── permanova
+│   └── maaslin2
+├── image
+│   └── SBMIE.png
+├── result
+│   ├── figures
+│   ├── README.md
+│   └── tables
+├── LICENSE.md
+└── README.md
+```
 ### How to regenerate this repository
 
 #### Dependencies and locations
 * [Miniconda3](https://docs.conda.io/en/latest/miniconda.html) is located in the HOME directory.
 * [grabseqs (0.7.0)](https://github.com/louiejtaylor/grabseqs) should be installed via conda.
 * [QIIME2 (2020.2)](https://docs.qiime2.org/2020.2/) should be installed within a conda environment (qiime2-2020.2).
-* R (3.6.3) should be located in the user's PATH.
-* R packages: refer to the `SessionInfo`contained in the html files rendered from the RMarkdown files.
+* R (3.6.0) should be located in the user's PATH.
+* R packages: refer to the `SessionInfo` in the html files rendered from the RMarkdown files.
   
 #### Running analysis
-All analysis should be run from the project's root directory.
-
-To begin with, run the following bash command to download
-
-
+Download or clone the github repository to local working directory.
 ```
-git clone https://github.com/SchlossLab/LastName_BriefDescription_Journal_Year.git
-make write.paper
+git clone https://github.com/yanxianl/AquaFly-SeawaterGutHealth-Aquaculture-2019.git
 ```
+Run all the codes from the project's root directory. The codes are numbered by the order of execution
+
 ### To-do list
 * Add a driver script to automate all the analysis, e.g., `make `or `snakemake`.
-* Add a container image to make the anaylsis more reproducible.
+
 ### Acknowledgements
 The initial file and directory structure of this project was developed by a group of participants in the Reproducible Science Curriculum Workshop, held at [NESCent] in December 2014 ([rr-init repository]). The structure is based on, and heavily follows the one proposed by [Noble 2009], with a few but small modifications. All copyright and related and neighboring rights to the original template were dedicated to the public domain worldwide under the [CC0 Public Domain Dedication]. The template and its derivatives are distributed without any warranty. It has been further modified by Pat Schloss to fit the needs of his research group.

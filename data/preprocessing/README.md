@@ -1,10 +1,3 @@
-This folder holds data and visualization files relevant to the screening of contaminating features in the data.
+The `decontam` folder contains visualization files for screening contaminating features in the data.
 
-1. Data files
-    * `table-no-chlo-mito-lowPre-with-phyla-tax-rel.tsv`: total sum scale normalized feature table with taxonomy for the screening of contaminating features. The table has been filtered to exclude: 1) chloroplast/mitochondria sequences and those without a phylum-level taxonomic annotation; 2) low-prevalence features that only present in one sample.
-    * `contaminants-sample.tsv`: feature ID and taxonomy of contaminating sequences to be removed from the biological samples.
-    * `contaminants-mock.tsv`: feature ID and taxonomy of contaminating sequences (including cross-contaminants) to be removed from the mock samples.
-
-2. Visualization files
-    * `feature_prevalence.pdf`: barplots showing the prevalence and abundance of features found in the negative controls.
-    * `correlation.pdf`: correlation plots showing the correlation between sample bacterial DNA concentration and the abundance of features found in the negative controls.
+The feature table `table-filtered.biom` was filtered to exclude: 1) chloroplast/mitochondria sequences and those without a phylum-level taxonomic annotation; 2) low-prevalence features that only present in one sample; 3) contaminating features.

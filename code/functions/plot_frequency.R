@@ -1,7 +1,7 @@
 ###############################################################################
 # plot_frequency
 
-# Copyright (c) 2020 Norwegian University of Life Sciences
+# Copyright (c) 2020 Yanxian Li
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal

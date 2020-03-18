@@ -35,7 +35,7 @@ root
 │   ├── qiime2R        # .RData containing outputs from qiime2
 │   ├── permanova      # input data and results of the PERMANOVA
 │   └── maaslin2       # default outputs from the maaslin2 program
-├── image   # pictures/photos relevant to the analysis  
+├── image   # pictures/photos relevant to the analysis
 ├── result  # final results published with the paper
 │   ├── figures    
 │   ├── tables     

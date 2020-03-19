@@ -157,5 +157,5 @@ qiime emperor biplot \
   --o-visualization data/qiime2/robust-Aitchison-pca/biplot.qzv \
   --p-number-of-features 8
 
-# exit qiime2-2020.2 
+# Exit qiime2-2020.2 
 conda deactivate

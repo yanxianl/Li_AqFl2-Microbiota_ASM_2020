@@ -92,9 +92,9 @@ root
   * `venn`
   
 #### Running analysis
-All codes should be run from the project's root directory.
+All the codes should be run from the project's root directory.
 
-1.Download or clone the github repository to a local working directory.
+1.Download or clone the github repository to the project's root directory.
 ```bash
 git clone https://github.com/yanxianl/Li_AqFl2-Microbiota_ASM_2020.git
 ```

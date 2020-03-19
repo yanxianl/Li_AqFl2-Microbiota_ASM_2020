@@ -48,48 +48,48 @@ root
 #### Dependencies and locations
 * [Miniconda3](https://docs.conda.io/en/latest/miniconda.html) is located in the HOME directory.
 * [grabseqs (0.7.0)](https://github.com/louiejtaylor/grabseqs) should be installed via conda.
-* [QIIME2 (2020.2)](https://docs.qiime2.org/2020.2/) should be installed within a conda environment (qiime2-2020.2).
+* [QIIME2 (2020.2)](https://docs.qiime2.org/2020.2/) should be installed within a conda environment named as `qiime2-2020.2`.
+  * QIIME2 library: [DEICODE (0.2.3)](https://library.qiime2.org/plugins/deicode/19/)
 * [Pandoc (1.12.4.2)](https://pandoc.org/index.html) should be located in the user's PATH.
 * R (3.6.0) should be located in the user's PATH.
-* R packages: 
-  * `ape`
-  * `biomformat`
-  * `circlize`
-  * `ComplexHeatmap`
-  * `cowplot`
-  * `dada2`
-  * `DT`
-  * `EMAtools`
-  * `emmeans`
-  * `factoextra`
-  * `ggResidpanel`
-  * `ggsignif`
-  * `ggstatsplot`
-  * `grid`
-  * `gridExtra`
-  * `gt`
-  * `here`
-  * `knitr`
-  * `knitr`
-  * `lmerTest`
-  * `lsr`
-  * `Maaslin2`
-  * `MicrobeR`
-  * `microbiome`
-  * `PerformanceAnalytics`
-  * `philr`
-  * `phyloseq`
-  * `picante`
-  * `plotly`
-  * `qiime2R`
-  * `RColorBrewer`
-  * `rlang`
-  * `rmarkdown`
-  * `rmarkdown`
-  * `scales`
-  * `tidyverse`
-  * `vegan`
-  * `venn`
+* R packages (package_version): 
+  * ape v
+  * biomformat_1.12.0 
+  * circlize v
+  * ComplexHeatmap v
+  * cowplot v
+  * dada2_1.12.1
+  * DT_0.11
+  * EMAtools v
+  * emmeans v
+  * factoextra v
+  * ggResidpanel v
+  * ggsignif v
+  * ggstatsplot v
+  * grid v
+  * gridExtra v
+  * gt v
+  * here_0.1
+  * knitr_1.27
+  * lmerTest v
+  * lsr v
+  * Maaslin2 v
+  * MicrobeR v
+  * microbiome v
+  * PerformanceAnalytics v
+  * philr v
+  * phyloseq v
+  * picante v
+  * plotly_4.9.1
+  * qiime2R v
+  * RColorBrewer v
+  * rlang v
+  * rmarkdown v
+  * rmarkdown v
+  * scales v
+  * tidyverse_1.3.0
+  * vegan v
+  * venn v
   
 #### Running analysis
 All the codes should be run from the project's root directory.

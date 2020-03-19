@@ -55,7 +55,7 @@ root
 #### Running analysis
 Download or clone the github repository to a local working directory.
 ```
-git clone https://github.com/yanxianl/AquaFly-SeawaterGutHealth-Aquaculture-2019.git
+git clone https://github.com/yanxianl/Li_AqFl2-Microbiota_ASM_2020.git
 ```
 Run codes in the `code/` folder from the project's root directory. The codes are numbered by the order of execution.
 

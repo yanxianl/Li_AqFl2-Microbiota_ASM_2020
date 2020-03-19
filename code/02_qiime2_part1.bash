@@ -78,5 +78,5 @@ qiime taxa barplot \
   --m-metadata-file data/metadata.tsv \
   --o-visualization data/qiime2/taxa-bar-plots.qzv
 
-# exit qiime2-2020.2 
+# Exit qiime2-2020.2 
 conda deactivate

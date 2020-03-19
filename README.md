@@ -49,15 +49,67 @@ root
 * [Miniconda3](https://docs.conda.io/en/latest/miniconda.html) is located in the HOME directory.
 * [grabseqs (0.7.0)](https://github.com/louiejtaylor/grabseqs) should be installed via conda.
 * [QIIME2 (2020.2)](https://docs.qiime2.org/2020.2/) should be installed within a conda environment (qiime2-2020.2).
+* [Pandoc (1.12.4.2)](https://pandoc.org/index.html) should be located in the user's PATH.
 * R (3.6.0) should be located in the user's PATH.
-* R packages: refer to the `SessionInfo` in the html files rendered from the RMarkdown files.
+* R packages: 
+  * `ape`
+  * `biomformat`
+  * `circlize`
+  * `ComplexHeatmap`
+  * `cowplot`
+  * `dada2`
+  * `DT`
+  * `EMAtools`
+  * `emmeans`
+  * `factoextra`
+  * `ggResidpanel`
+  * `ggsignif`
+  * `ggstatsplot`
+  * `grid`
+  * `gridExtra`
+  * `gt`
+  * `here`
+  * `knitr`
+  * `knitr`
+  * `lmerTest`
+  * `lsr`
+  * `Maaslin2`
+  * `MicrobeR`
+  * `microbiome`
+  * `PerformanceAnalytics`
+  * `philr`
+  * `phyloseq`
+  * `picante`
+  * `plotly`
+  * `qiime2R`
+  * `RColorBrewer`
+  * `rlang`
+  * `rmarkdown`
+  * `rmarkdown`
+  * `scales`
+  * `tidyverse`
+  * `vegan`
+  * `venn`
   
 #### Running analysis
-Download or clone the github repository to a local working directory.
-```
+All codes should be run from the project's root directory.
+
+1.Download or clone the github repository to a local working directory.
+```bash
 git clone https://github.com/yanxianl/Li_AqFl2-Microbiota_ASM_2020.git
 ```
-Run codes in the `code/` folder from the project's root directory. The codes are numbered by the order of execution.
+2. Download raw sequence files and reference database/phylogenetic tree for the analysis.
+```bash
+bash code/00_setup.bash
+```
+3.Sequence denoising by the dada2 pipeline.
+```bash
+Rscript -e "rmarkdown::render('code/01_dada2.Rmd')"
+```
+4.Taxonomic assignment in qiime2.
+```bash
+bash code/02_qiime2_part1.bash
+```
 
 ### To-do list
 * Add a driver script to automate all the analysis, e.g., `make ` or `snakemake`.

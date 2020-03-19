@@ -24,13 +24,13 @@ root
 │   ├── 08_beta-diversity.Rmd         # beta-diversity visualization and statistical analysis
 │   ├── 09_metadata_association.Rmd   # association testing between microbial clades and sample metadata
 │   └── README.md
-├── data               # all the data, including raw, reference and intermediate data generated from different steps of the pipeline
+├── data               # all the data, including raw, reference and intermediate data
 │   ├── metadata.tsv   # sample metadata
-│   ├── raw            # raw sequence data and qPCR assay files
-│   ├── reference      # reference sequences/taxonomy (silva132); reference phylogenetic tree (silva128); theoretical mock composition
+│   ├── raw            # raw data
+│   ├── reference      # reference data
 │   ├── qPCR           # qPCR assay reports, plat-calibration and Cq values
-│   ├── dada2          # outputs from the dada2 pipeline including the representative sequences and feature table
-│   ├── qiime2         # outputs from the qiime2 pipeline
+│   ├── dada2          # outputs from dada2 including the representative sequences and feature table
+│   ├── qiime2         # outputs from qiime2
 │   ├── preprocessing  # plots for the identification of contaminants; filtered feature table   
 │   ├── qiime2R        # .RData containing outputs from qiime2
 │   ├── permanova      # input data and results of the PERMANOVA
@@ -40,7 +40,7 @@ root
 │   ├── figures    
 │   ├── tables     
 │   └── README.md 
-├── LICENSE.md  # license for the copyright of codes published in this repository
+├── LICENSE.md  # license for the copyright of scripts published in this repository
 └── README.md
 ```
 ### How to regenerate this repository
@@ -49,15 +49,15 @@ root
 * [Miniconda3](https://docs.conda.io/en/latest/miniconda.html) is located in the HOME directory.
 * [grabseqs (0.7.0)](https://github.com/louiejtaylor/grabseqs) should be installed via conda.
 * [QIIME2 (2020.2)](https://docs.qiime2.org/2020.2/) should be installed within a conda environment (qiime2-2020.2).
-* R (3.6.2) should be located in the user's PATH.
+* R (3.6.0) should be located in the user's PATH.
 * R packages: refer to the `SessionInfo` in the html files rendered from the RMarkdown files.
   
 #### Running analysis
-Download or clone the github repository to local working directory.
+Download or clone the github repository to a local working directory.
 ```
 git clone https://github.com/yanxianl/AquaFly-SeawaterGutHealth-Aquaculture-2019.git
 ```
-Run all the codes in the `code/` folder from the project's root directory. The codes are numbered by the order of execution.
+Run codes in the `code/` folder from the project's root directory. The codes are numbered by the order of execution.
 
 ### To-do list
 * Add a driver script to automate all the analysis, e.g., `make ` or `snakemake`.

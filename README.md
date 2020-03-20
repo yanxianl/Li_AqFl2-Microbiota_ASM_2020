@@ -46,13 +46,13 @@ root
 ### How to regenerate this repository
 
 #### Dependencies and locations
-* [Miniconda3](https://docs.conda.io/en/latest/miniconda.html) is located in the HOME directory.
-* [grabseqs (0.7.0)](https://github.com/louiejtaylor/grabseqs) should be installed via conda.
-* [QIIME2 (2020.2)](https://docs.qiime2.org/2020.2/) should be installed within a conda environment named as `qiime2-2020.2`.
-  * QIIME2 library: [DEICODE (0.2.3)](https://library.qiime2.org/plugins/deicode/19/) should be installed with the qiime2 conda environment.
+* [Miniconda3](https://docs.conda.io/en/latest/miniconda.html) should be located in the default HOME directory of the linux instance.
+* [grabseqs (0.7.0)](https://github.com/louiejtaylor/grabseqs) should be installed via the Miniconda3.
+* [QIIME2 (2020.2)](https://docs.qiime2.org/2020.2/) should be installed within a Miniconda3 environment named as `qiime2-2020.2`.
+  * QIIME2 library: [DEICODE (0.2.3)](https://library.qiime2.org/plugins/deicode/19/) should be installed within the conda environment of qiime2 (`qiime2-2020.2`).
 * [Pandoc (1.12.4.2)](https://pandoc.org/index.html) should be located in the user's PATH.
 * R (3.6.3) should be located in the user's PATH.
-* R packages (package_version): 
+* R packages (name_version): 
   * ape_5.3
   * biomformat_1.12.0 
   * circlize_0.4.8
@@ -143,6 +143,6 @@ Rscript -e "rmarkdown::render('code/09_metadata_association.Rmd')"
 ```
 ### To-do list
 * Add a driver script to automate all the analysis, e.g., `make ` or `snakemake`.
-
+* Make lightweight RMardown files ([03, 05-09]_\*.Rmd) binder-ready, which can be directly run online by clicking the `launch binder` badge located at the top of this README.
 ### Acknowledgements
 The initial file and directory structure of this project is based on the [template](https://github.com/SchlossLab/new_project/releases/latest) shared by [Dr. Pat Schloss](http://www.schlosslab.org/) to improve the reproducibility of microbiome data analysis. For trainings and tutorials on reproducible data analysis in microbiome research, check the [*Riffomonas*](http://www.riffomonas.org/) project.

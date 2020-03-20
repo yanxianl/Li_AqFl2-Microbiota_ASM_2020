@@ -27,7 +27,7 @@
 # This script modifies the function from MaAsLin2 to allow for customization of heatmap.
 
 # Load libararies
-for (lib in c("tidyverse", "grid", "circlize", "ComplexHeatmap")) {
+for (lib in c("tidyverse", "circlize", "ComplexHeatmap")) {
   suppressPackageStartupMessages(require(lib, character.only = TRUE))
 }
 

@@ -27,11 +27,9 @@ Depends:
     ggResidpanel
     ggsignif
     ggstatsplot
-    grid
     gridExtra
     gt
     here
-    knitr
     knitr
     lmerTest
     lsr
@@ -46,7 +44,6 @@ Depends:
     qiime2R
     RColorBrewer
     rlang
-    rmarkdown
     rmarkdown
     scales
     tidyverse

@@ -143,6 +143,6 @@ Rscript -e "rmarkdown::render('code/09_metadata_association.Rmd')"
 ```
 ### To-do list
 * Add a driver script to automate all the analysis, e.g., `make ` or `snakemake`.
-* Make lightweight RMardown files ([03, 05-09]_\*.Rmd) binder-ready, which can be directly run online by clicking the `launch binder` badge located at the top of this README.
+* Make lightweight RMarkdown files ([03, 05-09]_\*.Rmd) binder-ready, which can be directly run online by clicking the `launch binder` badge located at the top of this README file.
 ### Acknowledgements
 The initial file and directory structure of this project is based on the [template](https://github.com/SchlossLab/new_project/releases/latest) shared by [Dr. Pat Schloss](http://www.schlosslab.org/) to improve the reproducibility of microbiome data analysis. For trainings and tutorials on reproducible data analysis in microbiome research, check the [*Riffomonas*](http://www.riffomonas.org/) project.

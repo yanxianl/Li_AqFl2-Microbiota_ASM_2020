@@ -49,47 +49,45 @@ root
 * [Miniconda3](https://docs.conda.io/en/latest/miniconda.html) is located in the HOME directory.
 * [grabseqs (0.7.0)](https://github.com/louiejtaylor/grabseqs) should be installed via conda.
 * [QIIME2 (2020.2)](https://docs.qiime2.org/2020.2/) should be installed within a conda environment named as `qiime2-2020.2`.
-  * QIIME2 library: [DEICODE (0.2.3)](https://library.qiime2.org/plugins/deicode/19/)
+  * QIIME2 library: [DEICODE (0.2.3)](https://library.qiime2.org/plugins/deicode/19/) should be installed with the qiime2 conda environment.
 * [Pandoc (1.12.4.2)](https://pandoc.org/index.html) should be located in the user's PATH.
-* R (3.6.0) should be located in the user's PATH.
+* R (3.6.3) should be located in the user's PATH.
 * R packages (package_version): 
-  * ape v
+  * ape_5.3
   * biomformat_1.12.0 
-  * circlize v
-  * ComplexHeatmap v
-  * cowplot v
+  * circlize_0.4.8
+  * ComplexHeatmap_2.0.0
+  * cowplot_1.0.0
   * dada2_1.12.1
   * DT_0.11
-  * EMAtools v
-  * emmeans v
-  * factoextra v
-  * ggResidpanel v
-  * ggsignif v
-  * ggstatsplot v
-  * grid v
-  * gridExtra v
-  * gt v
+  * EMAtools_0.1.3 
+  * emmeans_1.4.4
+  * factoextra_1.0.6 
+  * ggResidpanel_0.3.0
+  * ggsignif_0.6.0 
+  * ggstatsplot_0.3.1
+  * gridExtra_2.3
+  * gt_0.1.0 
   * here_0.1
   * knitr_1.27
-  * lmerTest v
-  * lsr v
-  * Maaslin2 v
-  * MicrobeR v
-  * microbiome v
-  * PerformanceAnalytics v
-  * philr v
-  * phyloseq v
-  * picante v
+  * lmerTest_3.1-1
+  * lsr_0.5 
+  * Maaslin2_0.99.12 
+  * MicrobeR_0.3.1
+  * microbiome_1.6.0 
+  * PerformanceAnalytics_1.5.3
+  * philr_1.10.1
+  * phyloseq_1.28.0 
+  * picante_1.8
   * plotly_4.9.1
-  * qiime2R v
-  * RColorBrewer v
-  * rlang v
-  * rmarkdown v
-  * rmarkdown v
-  * scales v
+  * qiime2R_0.99.13
+  * RColorBrewer_1.1-2
+  * rlang_0.4.4 
+  * rmarkdown_2.1 
+  * scales_1.1.0
   * tidyverse_1.3.0
-  * vegan v
-  * venn v
+  * vegan_2.5-6
+  * venn_1.9
   
 #### Running analysis
 All the codes should be run from the project's root directory.
@@ -102,11 +100,11 @@ git clone https://github.com/yanxianl/Li_AqFl2-Microbiota_ASM_2020.git
 # delete the following folders which would otherwise cause problems when running `04_qiime2_part2.bash`
 rm -rf data/qiime2/core-metrics-results/ data/qiime2/robust-Aitchison-pca/
 ```
-2. Download raw sequence files and reference database/phylogenetic tree for the analysis.
+2.Download raw sequence data and reference database/phylogenetic tree for the analysis.
 ```bash
 bash code/00_setup.bash
 ```
-3.Sequence denoising by the dada2 pipeline.
+3.Sequence denoising by dada2.
 ```bash
 Rscript -e "rmarkdown::render('code/01_dada2.Rmd')"
 ```

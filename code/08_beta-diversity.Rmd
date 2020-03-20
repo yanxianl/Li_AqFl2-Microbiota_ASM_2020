@@ -362,16 +362,18 @@ permanova_contrasts <- column_to_rownames(permanova_contrasts, "Distance matrix"
   rownames_to_column("Distance matrix")
 
 # Merge results
-permanova <- full_join(permanova_main, permanova_contrasts, by = "Distance matrix") %>%
-  gt() %>%
+permanova <- full_join(permanova_main, permanova_contrasts, by = "Distance matrix")
+
+# Format results as a gt table 
+permanova <- gt(permanova) %>%
   tab_header(title = "PERMANOVA") %>%
   tab_footnote(footnote = md("Monte Carlo *p* value"),
                locations = cells_data(columns = c(2, 5), rows = 2)) %>%
   tab_footnote(footnote = md("Monte Carlo *p* value"),
                locations = cells_data(columns = c(7, 8), rows = 3)) %>%
   tab_spanner(label = "Main effects", columns = 2:3) %>%
-  tab_spanner(label = "Conditional contrasts", columns = 5:ncol(.)) %>%
-  cols_align(align = "center", columns = 2:ncol(.))
+  tab_spanner(label = "Conditional contrasts", columns = 5:ncol(permanova)) %>%
+  cols_align(align = "center", columns = 2:ncol(permanova))
 
 permanova
 ```
@@ -492,7 +494,7 @@ bp_philr
 ### Table
 Here we gather and format PERMDISP results.
 ```{r export_permdisp}
-# Gather and format results
+# Gather PERMDISP results
 permdisp <- list(Jaccard = permdisp_jac, "Unweighted UniFrac" = permdisp_uwuf, 
                  Aitchison = permdisp_aitchison, "PHILR (Euclidean)" = permdisp_philr) %>%
   map_df(~.x$pairwise$permuted) %>%
@@ -508,11 +510,13 @@ permdisp <- list(Jaccard = permdisp_jac, "Unweighted UniFrac" = permdisp_uwuf,
   as.data.frame() %>%
   rename_all(~gsub("DIC-", "DIC VS. ", .x)) %>%
   rename_all(~gsub("DIM-", "DIM VS. ", .x)) %>%
-  rownames_to_column("Distance matrix") %>%
-  gt() %>%
+  rownames_to_column("Distance matrix")
+
+# Format results as a gt table   
+permdisp <- gt(permdisp) %>%
   tab_header(title = "PERMDISP") %>%
-  tab_spanner(label = "Conditional contrasts", columns = 2:ncol(.)) %>%
-  cols_align(align = "center", columns = 2:ncol(.))
+  tab_spanner(label = "Conditional contrasts", columns = 2:ncol(permdisp)) %>%
+  cols_align(align = "center", columns = 2:ncol(permdisp))
 
 permdisp
 ```

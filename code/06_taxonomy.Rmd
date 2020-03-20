@@ -364,7 +364,7 @@ core_taxa_tab %>%
   tab_header(title = "Table S2. The core taxa of digesta- and mucosa-associated 
                       distal gut microbiota in Atlantic salmon fed different diets.") %>%
   tab_spanner(label = "Taxonomy", columns = 1:6) %>%
-  tab_spanner(label = "Prevalence", columns = 7:ncol(.)) %>%
+  tab_spanner(label = "Prevalence", columns = 7:ncol(core_taxa_tab)) %>%
   cols_align(align = "center") %>%
   tab_source_note("The core taxa were computed using a prevalence threshold at 80%.") %>%
   tab_source_note("Abbreviations: REF, reference diet; IM, insect meal diet; 
@@ -372,7 +372,7 @@ core_taxa_tab %>%
   # the top/bottom border color can't be modified
   tab_style(style = list(cell_text(weight = "bold", size = 14), cell_borders(sides = "top", color = "white")),
             locations = cells_title(groups = "title")) %>%
-  tab_options(table.font.size = 12, column_labels.font.size = 12, sourcenote.font.size = 12) %>%
+  tab_options(table.font.size = 12, column_labels.font.size = 12, source_notes.font.size = 12) %>%
   gtsave(here("result", "tables", "Table S2.html"))
 ```
 

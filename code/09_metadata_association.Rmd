@@ -383,7 +383,7 @@ ranef <- c("FishID", "NetPen")
 ```
 
 Run multivariate association analysis.
-```{r run_maaslin2, results='hide'， fig.show='hide'}
+```{r run_maaslin2, results='hide'}
 fit <- Maaslin2(input_data = tab_genus, 
                 input_metadata = metadata,
                 output = here("data", "maaslin2"),

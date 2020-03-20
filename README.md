@@ -16,7 +16,7 @@ root
 │   ├── 00_setup.bash                 # download raw and reference data for the analysis
 │   ├── 01_dada2.Rmd                  # sequence denoising by the dada2 pipeline
 │   ├── 02_qiime2_part1.bash          # taxonomic assignment in qiime2
-│   ├── 03_preprocessing.Rmd          # feature table filtering and identification of contaminants    
+│   ├── 03_preprocessing.Rmd          # feature table filtering    
 │   ├── 04_qiime2_part2.bash          # phylogeny and core-metrics-results
 │   ├── 05_qiime2R.Rmd                # export qiime2 artifacts into R
 │   ├── 06_taxonomy.Rmd               # taxonomic analysis
@@ -96,7 +96,11 @@ All the codes should be run from the project's root directory.
 
 1.Download or clone the github repository to the project's root directory.
 ```bash
+# clone the github repository
 git clone https://github.com/yanxianl/Li_AqFl2-Microbiota_ASM_2020.git
+
+# delete the following folders which would otherwise cause problems when running `04_qiime2_part2.bash`
+rm -rf data/qiime2/core-metrics-results/ data/qiime2/robust-Aitchison-pca/
 ```
 2. Download raw sequence files and reference database/phylogenetic tree for the analysis.
 ```bash
@@ -110,7 +114,35 @@ Rscript -e "rmarkdown::render('code/01_dada2.Rmd')"
 ```bash
 bash code/02_qiime2_part1.bash
 ```
-
+5.Filter the feature table to remove: 1).chloroplast/mitochondria sequences and those without a phylum-level taxonomic annotation;
+2).low-prevalence features that only present in one sample; 3).contaminating features.
+```bash
+Rscript -e "rmarkdown::render('code/03_preprocessing.Rmd')"
+```
+6.Phylogeny and core-metrics-results in qiime2.
+```bash
+bash code/04_qiime2_part2.bash
+```
+7.Export qiime2 outputs into R.
+```bash
+Rscript -e "rmarkdown::render('code/05_qiime2R.Rmd')"
+```
+8.Taxonomic analysis.
+```bash
+Rscript -e "rmarkdown::render('code/06_taxonomy.Rmd')"
+```
+9.Alpha-diversity visualization and statistical analysis.
+```bash
+Rscript -e "rmarkdown::render('code/07_alpha-diversity.Rmd')"
+```
+9.Beta-diversity visualization and statistical analysis.
+```bash
+Rscript -e "rmarkdown::render('code/08_beta-diversity.Rmd')"
+```
+10.Association testing between microbial clades and sample metadata.
+```bash
+Rscript -e "rmarkdown::render('code/09_metadata_association.Rmd')"
+```
 ### To-do list
 * Add a driver script to automate all the analysis, e.g., `make ` or `snakemake`.
 

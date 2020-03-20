@@ -22,6 +22,12 @@
 #'                          plot_mean = F, cluster_sample, sample_label, italize_taxa_name).
 #' @export
 
+# load libararies
+for (lib in c("tidyverse", "MicrobeR", "RColorBrewer")) {
+  suppressPackageStartupMessages(require(lib, character.only = TRUE))
+}
+
+# define the function
 make_taxa_barplot <- function(
   table, 
   metadata, 
@@ -132,20 +138,20 @@ make_taxa_barplot <- function(
     plot <- plot + 
       scale_fill_manual(values = brewer.pal(n = 12, name = "Paired")) 
   } else {
-    getPalette <- colorRampPalette(RColorBrewer::brewer.pal(12, "Paired"))
+    getPalette <- colorRampPalette(brewer.pal(12, "Paired"))
     colors <- getPalette(ntaxa + 1)
     plot <- plot + scale_fill_manual(values = colors)
   }
   
   if(missing(italize_taxa_name)){italize_taxa_name = F}
   
-  # make R expressions for costomizing legend text
+  # make R regular expressions for costomizing legend text
   if(italize_taxa_name == T){
     labs <- forplot %>%
       mutate(Taxa = ifelse(grepl("__|Others", Taxa), 
                            paste0("plain(", Taxa, ")"), 
                            paste0("italic(", Taxa, ")")),
-             # tilde (~) gets handled as a "space" in R expressions
+             # tilde (~) is recognized as a "space" in R expressions
              Taxa = gsub("\\s+", "~", Taxa))
   }
    
@@ -159,7 +165,7 @@ make_taxa_barplot <- function(
     }
     
   } else {
-    getPalette <- colorRampPalette(RColorBrewer::brewer.pal(12, "Paired"))
+    getPalette <- colorRampPalette(brewer.pal(12, "Paired"))
     colors <- getPalette(ntaxa + 1)
     if(italize_taxa_name == T){
       plot <- plot + scale_fill_manual(values = colors, labels = parse(text = rev(unique(labs$Taxa))))

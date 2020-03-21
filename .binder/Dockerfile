@@ -9,7 +9,7 @@ RUN apt-get update -y\
 && apt-get install -y curl libcurl4-openssl-dev\
 && apt-get install -y git\
 && R -e "install.packages(c('BiocManager', 'remotes'))"\
-&& R -e "BiocManager::install(c('biomformat','Biostrings','dada2','DECIPHER','Maaslin2','microbiome','phangorn','phyloseq','philr'))"\
+&& R -e "BiocManager::install(c('biomformat','Biostrings','ComplexHeatmap','dada2','DECIPHER','Maaslin2','microbiome','phangorn','phyloseq','philr'))"\
 && R -e "remotes::install_github(c('rstudio/gt@efaee2d','jbisanz/MicrobeR@d542679','jbisanz/qiime2R@0.99.11'),upgrade='never')"
 
 USER ${NB_USER}

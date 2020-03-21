@@ -46,48 +46,48 @@ root
 ### How to regenerate this repository
 
 #### Dependencies and locations
-* [Miniconda3](https://docs.conda.io/en/latest/miniconda.html) should be located in the default HOME directory of the linux instance.
+* [Miniconda3](https://docs.conda.io/en/latest/miniconda.html) should be located in your HOME directory.
 * [grabseqs (0.7.0)](https://github.com/louiejtaylor/grabseqs) should be installed via the Miniconda3.
 * [QIIME2 (2020.2)](https://docs.qiime2.org/2020.2/) should be installed within a Miniconda3 environment named as `qiime2-2020.2`.
   * QIIME2 library: [DEICODE (0.2.3)](https://library.qiime2.org/plugins/deicode/19/) should be installed within the conda environment of qiime2 (`qiime2-2020.2`).
 * [Pandoc (1.12.4.2)](https://pandoc.org/index.html) should be located in the user's PATH.
 * R (3.6.3) should be located in the user's PATH.
-* R packages (name_version): 
-  * ape_5.3
-  * biomformat_1.12.0 
-  * circlize_0.4.8
-  * ComplexHeatmap_2.0.0
-  * cowplot_1.0.0
-  * dada2_1.12.1
-  * DT_0.11
-  * EMAtools_0.1.3 
-  * emmeans_1.4.4
-  * factoextra_1.0.6 
-  * ggResidpanel_0.3.0
-  * ggsignif_0.6.0 
-  * ggstatsplot_0.3.1
-  * gridExtra_2.3
-  * gt_0.1.0 
-  * here_0.1
-  * knitr_1.27
-  * lmerTest_3.1-1
-  * lsr_0.5 
-  * Maaslin2_0.99.12 
-  * MicrobeR_0.3.1
-  * microbiome_1.6.0 
-  * PerformanceAnalytics_1.5.3
-  * philr_1.10.1
-  * phyloseq_1.28.0 
-  * picante_1.8
-  * plotly_4.9.1
-  * qiime2R_0.99.13
-  * RColorBrewer_1.1-2
-  * rlang_0.4.4 
-  * rmarkdown_2.1 
-  * scales_1.1.0
-  * tidyverse_1.3.0
-  * vegan_2.5-6
-  * venn_1.9
+* R packages (packageName_version[source]): 
+  * ape_5.3 [CRAN]
+  * biomformat_1.12.0 [Bioconductor 3.9]
+  * circlize_0.4.8 [CRAN]
+  * ComplexHeatmap_2.0.0 [Bioconductor 3.9]
+  * cowplot_1.0.0 [CRAN]
+  * dada2_1.12.1 [Bioconductor 3.9]
+  * DT_0.11 [CRAN]
+  * EMAtools_0.1.3 [CRAN]
+  * emmeans_1.4.4 [CRAN]
+  * factoextra_1.0.6 [CRAN] 
+  * ggResidpanel_0.3.0 [CRAN]
+  * ggsignif_0.6.0 [CRAN] 
+  * ggstatsplot_0.3.1 [CRAN]
+  * gridExtra_2.3 [CRAN]
+  * gt_0.1.0 [github::rstudio/gt@f793b33]
+  * here_0.1 [CRAN]
+  * knitr_1.27 [CRAN]
+  * lmerTest_3.1-1 [CRAN]
+  * lsr_0.5 [CRAN] 
+  * Maaslin2_0.99.12 [bitbucket::biobakery/maaslin2@0.99.12]
+  * MicrobeR_0.3.1 [github::jbisanz/MicrobeR@7207507]
+  * microbiome_1.6.0 [Bioconductor 3.9] 
+  * PerformanceAnalytics_1.5.3 [CRAN]
+  * philr_1.10.1 [Bioconductor 3.9]
+  * phyloseq_1.28.0 [Bioconductor 3.9] 
+  * picante_1.8 [CRAN]
+  * plotly_4.9.1 [CRAN]
+  * qiime2R_0.99.13 [github::jbisanz/qiime2R@cd07f40]
+  * RColorBrewer_1.1-2 [CRAN]
+  * rlang_0.4.4 [CRAN] 
+  * rmarkdown_2.1 [CRAN] 
+  * scales_1.1.0 [CRAN]
+  * tidyverse_1.3.0 [CRAN]
+  * vegan_2.5-6 [CRAN]
+  * venn_1.9 [CRAN]
   
 #### Running analysis
 All the codes should be run from the project's root directory.
@@ -141,8 +141,13 @@ Rscript -e "rmarkdown::render('code/08_beta-diversity.Rmd')"
 ```bash
 Rscript -e "rmarkdown::render('code/09_metadata_association.Rmd')"
 ```
+#### Running RMarkdown files online via [binder](https://mybinder.org/) 
+Computationally lightweight RMarkdown files ([03, 05-09]_\*.Rmd) can be directly run online by clicking the `launch binder` badge located at the top of this README. After clicking the badge, this repository will be turned into an RStudio instance that has all the dependencies installed and ready to go! The instance has limited computational resources (1~2GB RAM) and is not intended for intensive computation. 
+
 ### To-do list
 * Add a driver script to automate all the analysis, e.g., `make ` or `snakemake`.
-* Make lightweight RMarkdown files ([03, 05-09]_\*.Rmd) binder-ready, which can be directly run online by clicking the `launch binder` badge located at the top of this README file.
+
 ### Acknowledgements
 The initial file and directory structure of this project is based on the [template](https://github.com/SchlossLab/new_project/releases/latest) shared by [Dr. Pat Schloss](http://www.schlosslab.org/) to improve the reproducibility of microbiome data analysis. For trainings and tutorials on reproducible data analysis in microbiome research, check the [*Riffomonas*](http://www.riffomonas.org/) project.
+
+The R package [holepunch](https://karthik.github.io/holepunch/) was used to make the RMarkdown files binder-ready. 

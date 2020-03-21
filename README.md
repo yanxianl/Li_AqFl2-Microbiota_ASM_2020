@@ -44,7 +44,7 @@ root
 └── README.md
 ```
 ### How to regenerate the figures/tables
-Computationally lightweight RMarkdown files ([03, 05-09]_\*.Rmd) can be directly run online by clicking the `launch binder` badge located at the top of this README. After clicking the badge, this repository will be turned into an RStudio instance that has all the dependencies installed and ready to go! The instance has limited computational resources (1~2GB RAM) and is not intended for intensive computation (e.g., 01_dada2.Rmd).
+Computationally lightweight RMarkdown files ([03, 05-09]_\*.Rmd) can be directly run online by clicking the ![Launch Binder](http://mybinder.org/badge_logo.svg) badge located at the top of this README. After clicking the badge, this repository will be turned into an RStudio instance that has all the dependencies installed and ready to go! The instance has limited computational resources (1~2GB RAM) and is not intended for intensive computation (e.g., 01_dada2.Rmd).
 
 To reproduce the figures and tables published with the paper, run the following RMarkdown files:
 * 03_preprocessing.Rmd
@@ -106,10 +106,10 @@ To reproduce the figures and tables published with the paper, run the following 
   * vegan_2.5-6 [CRAN]
   * venn_1.9 [CRAN]
   
-#### Running analysis
+#### Running the analysis
 All the codes should be run from the project's root directory.
 
-1.Download or clone the github repository to the project's root directory.
+1.Download or clone this github repository to your project's root directory.
 ```bash
 # clone the github repository
 git clone https://github.com/yanxianl/Li_AqFl2-Microbiota_ASM_2020.git
@@ -117,7 +117,7 @@ git clone https://github.com/yanxianl/Li_AqFl2-Microbiota_ASM_2020.git
 # delete the following folders which would otherwise cause problems when running `04_qiime2_part2.bash`
 rm -rf data/qiime2/core-metrics-results/ data/qiime2/robust-Aitchison-pca/
 ```
-2.Download raw sequence data and reference database/phylogenetic tree for the analysis.
+2.Download the raw sequence data and reference database/phylogenetic tree for the analysis.
 ```bash
 bash code/00_setup.bash
 ```
@@ -159,10 +159,10 @@ Rscript -e "rmarkdown::render('code/08_beta-diversity.Rmd')"
 Rscript -e "rmarkdown::render('code/09_metadata_association.Rmd')"
 ```
 
-### To-do list
+### To-do
 * Add a driver script to automate all the analysis, e.g., `make ` or `snakemake`.
 
 ### Acknowledgements
 The initial file and directory structure of this project is based on the [template](https://github.com/SchlossLab/new_project/releases/latest) shared by [Dr. Pat Schloss](http://www.schlosslab.org/) to improve the reproducibility of microbiome data analysis. For trainings and tutorials on reproducible data analysis in microbiome research, check the [*Riffomonas*](http://www.riffomonas.org/) project.
 
-The R package [holepunch](https://karthik.github.io/holepunch/) was used to make the RMarkdown files binder-ready. 
+The R package [holepunch](https://karthik.github.io/holepunch/) was used to make the RMarkdown files [binder](https://mybinder.org/)-ready. 

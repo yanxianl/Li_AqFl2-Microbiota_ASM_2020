@@ -13,4 +13,4 @@ RUN apt-get update -y\
 && R -e "remotes::install_github(c('rstudio/gt@efaee2d','jbisanz/MicrobeR@d542679','jbisanz/qiime2R@0.99.11'),upgrade='never')"
 
 USER ${NB_USER}
-RUN wget https://github.com/yanxianl/Li_AqFl2-Microbiota_ASM_2020/raw/master/DESCRIPTION && R -e "options(repos = list(CRAN = 'http://mran.revolutionanalytics.com/snapshot/2020-03-05/')); devtools::install_deps()"
+RUN wget https://github.com/yanxianl/Li_AqFl2-Microbiota_ASM_2020/raw/master/DESCRIPTION && R -e "options(repos = list(CRAN = 'http://mran.revolutionanalytics.com/snapshot/2020-03-16/')); devtools::install_deps()"

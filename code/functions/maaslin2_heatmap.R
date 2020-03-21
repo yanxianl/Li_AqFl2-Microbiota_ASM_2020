@@ -96,7 +96,7 @@ maaslin2_heatmap <-
     data <- df$feature
     value <- NA
     
-    if (legend_title == FALSE) {legend_title <- ""}
+    if (legend_title == FALSE) {legend_title <- " "}
     
     # values to use for coloring the heatmap
     # and set the colorbar boundaries

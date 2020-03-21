@@ -8,8 +8,7 @@ RUN apt-get update -y\
 && apt-get install -y dpkg-dev zlib1g-dev libssl-dev libffi-dev\
 && apt-get install -y curl libcurl4-openssl-dev\
 && apt-get install -y git\
-&& R -e "install.packages(c('BiocManager', 'remotes'))"\
-&& R -e "BiocManager::install(version='3.9')"\
+&& R -e "install.packages(c('BiocManager','remotes'))"\
 && R -e "BiocManager::install(c('biomformat','Biostrings','ComplexHeatmap','dada2','DECIPHER','edgeR','metagenomeSeq','microbiome','phangorn','phyloseq','philr'))"\
 && R -e "remotes::install_github(c('rstudio/gt@f793b33','jbisanz/MicrobeR@7207507','jbisanz/qiime2R@cd07f40'),upgrade='never')"\
 && R -e "remotes::install_bitbucket('biobakery/maaslin2@0.99.12',upgrade='never')"

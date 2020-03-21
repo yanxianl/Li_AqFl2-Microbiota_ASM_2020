@@ -43,15 +43,32 @@ root
 ├── LICENSE.md  # license for the copyright of scripts published in this repository
 └── README.md
 ```
-### How to regenerate this repository
+### How to regenerate the figures/tables
+Computationally lightweight RMarkdown files ([03, 05-09]_\*.Rmd) can be directly run online by clicking the `launch binder` badge located at the top of this README. After clicking the badge, this repository will be turned into an RStudio instance that has all the dependencies installed and ready to go! The instance has limited computational resources (1~2GB RAM) and is not intended for intensive computation (e.g., 01_dada2.Rmd).
 
+To reproduce the figures and tables published with the paper, run the following RMarkdown files:
+* 03_preprocessing.Rmd
+  * Figure S1  
+  * Table S1
+* 06_taxonomy.Rmd    
+  * Figure 1-3
+  * Table S2
+* 07_alpha-diversity.Rmd 
+  * Figure 4
+* 08_beta-diversity.Rmd
+  * Figure 5, Figure S2
+  * Table 1-2
+* 09_metadata_association.Rmd 
+  * Figure 6, Figure S3-8
+  
+### How to regenerate this repository
 #### Dependencies and locations
 * [Miniconda3](https://docs.conda.io/en/latest/miniconda.html) should be located in your HOME directory.
 * [grabseqs (0.7.0)](https://github.com/louiejtaylor/grabseqs) should be installed via the Miniconda3.
 * [QIIME2 (2020.2)](https://docs.qiime2.org/2020.2/) should be installed within a Miniconda3 environment named as `qiime2-2020.2`.
   * QIIME2 library: [DEICODE (0.2.3)](https://library.qiime2.org/plugins/deicode/19/) should be installed within the conda environment of qiime2 (`qiime2-2020.2`).
-* [Pandoc (1.12.4.2)](https://pandoc.org/index.html) should be located in the user's PATH.
-* R (3.6.3) should be located in the user's PATH.
+* [Pandoc (1.12.4.2)](https://pandoc.org/index.html) should be located in your PATH.
+* R (3.6.3) should be located in your PATH.
 * R packages (packageName_version[source]): 
   * ape_5.3 [CRAN]
   * biomformat_1.12.0 [Bioconductor 3.9]
@@ -133,16 +150,14 @@ Rscript -e "rmarkdown::render('code/06_taxonomy.Rmd')"
 ```bash
 Rscript -e "rmarkdown::render('code/07_alpha-diversity.Rmd')"
 ```
-9.Beta-diversity visualization and statistical analysis.
+10.Beta-diversity visualization and statistical analysis.
 ```bash
 Rscript -e "rmarkdown::render('code/08_beta-diversity.Rmd')"
 ```
-10.Association testing between microbial clades and sample metadata.
+11.Association testing between microbial clades and sample metadata.
 ```bash
 Rscript -e "rmarkdown::render('code/09_metadata_association.Rmd')"
 ```
-#### Running RMarkdown files online via [binder](https://mybinder.org/) 
-Computationally lightweight RMarkdown files ([03, 05-09]_\*.Rmd) can be directly run online by clicking the `launch binder` badge located at the top of this README. After clicking the badge, this repository will be turned into an RStudio instance that has all the dependencies installed and ready to go! The instance has limited computational resources (1~2GB RAM) and is not intended for intensive computation. 
 
 ### To-do list
 * Add a driver script to automate all the analysis, e.g., `make ` or `snakemake`.

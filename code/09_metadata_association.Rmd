@@ -725,7 +725,7 @@ p_barr
 ```
 
 Assemble plots
-```{r assemble_fig6, fig.height=10, fig.width=9}
+```{r assemble_fig6, fig.height=12, fig.width=10}
 # Assemble ggplots
 ind <- plot_grid(p_origin, p_diet, p_imm, p_barr, align = "v", axis = "lr", 
                  ncol = 1, labels = c("B", "C", "D", "E"))
@@ -736,12 +736,12 @@ hmp_grob <- grid.grabExpr(draw(hmp, heatmap_legend_side = "left"))
 # Combine the heatmap and ggplots
 plot_grid(hmp_grob,
           ind, 
-          rel_widths = c(1, 1.55),
+          rel_widths = c(1, 1.45),
           labels = c("A", ""),
           ncol = 2) 
 
 # Export the assembled plot
-ggsave(here("result", "figures", "Figure 6.tiff"), width = 9, height = 10,
+ggsave(here("result", "figures", "Figure 6.tiff"), width = 10, height = 12,
        units = "in", dpi = 300, compression = "lzw")
 ```
 

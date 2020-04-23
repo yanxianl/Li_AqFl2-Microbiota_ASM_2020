@@ -201,16 +201,16 @@ p_cc <- bind_rows(cc, .id = "adiv")
 
 # Make a dataframe for conditional p value annotation   
 anno1 <- filter(p_cc, SampleOrigin != ".") %>%
-  mutate(SampleOrigin = gsub("Contents", "DIC", SampleOrigin),
+  mutate(SampleOrigin = gsub("Digesta", "DID", SampleOrigin),
          SampleOrigin = gsub("Mucosa", "DIM", SampleOrigin)) %>%
   separate(contrast, sep = " - ", c("start", "end")) %>%
   mutate(start = paste0(start, "-", SampleOrigin),
          end = paste0(end, "-", SampleOrigin))
   
 anno2 <- filter(p_cc, Diet != ".") %>%
-  mutate(contrast = gsub("Contents", "DIC", contrast),
+  mutate(contrast = gsub("Digesta", "DID", contrast),
          contrast = gsub("Mucosa", "DIM", contrast)) %>%
-  # the "end" comes before "start" because we need to use "REF-DIC" as the starting point
+  # the "end" comes before "start" because we need to use "REF-DID" as the starting point
   separate(contrast, sep = " - ", c("end", "start")) %>%
   mutate(start = paste0(Diet, "-", start),
          end = paste0(Diet, "-", end)) 
@@ -219,8 +219,8 @@ anno <- bind_rows(anno1, anno2) %>%
   select(adiv, start, end, p.value) %>%
   # the columns are arranged in a way that p value annotation starts from left to right
   arrange(match(adiv, c("observed species", "Pielou's evenness", "Shannon's index", "Faith's PD")),
-          match(start, c("REF-DIC", "REF-DIM", "IM-DIC")),
-          match(end, c("REF-DIM", "IM-DIC"))) %>%
+          match(start, c("REF-DID", "REF-DIM", "IM-DID")),
+          match(end, c("REF-DIM", "IM-DID"))) %>%
   # the following 4 lines of code convert p values to the corresponding asterisks
   mutate(p.value = ifelse(p.value < 0.001, "***", p.value),
          p.value = ifelse(p.value >= 0.001 & p.value < 0.01, "**", p.value),
@@ -287,7 +287,7 @@ prow <- plot_grid(plotlist = p_list, ncol = 2, align = 'v', axis = "lr", labels 
 plot_grid(prow, legend, rel_widths = c(7, 1))
 
 # Export figure
-ggsave(here("result", "figures", "Figure 4.tiff"), width = 8, height = 9,
+ggsave(here("result", "figures", "Figure 3.tiff"), width = 8, height = 9,
        units = "in", dpi = 300, compression = "lzw")
 ```
 

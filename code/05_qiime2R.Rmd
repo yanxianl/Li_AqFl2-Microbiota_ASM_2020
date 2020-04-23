@@ -45,7 +45,7 @@ metadata <- metadata %>%
   rename(SampleID = "#SampleID") %>%
   # filter negative controls and mock from feature table
   filter(!SampleType %in% c("Extraction-blank", "Library-blank", "Mock")) %>%
-  mutate(SampleType = factor(SampleType, levels = c("REF-DIC", "REF-DIM", "IM-DIC", "IM-DIM")))
+  mutate(SampleType = factor(SampleType, levels = c("REF-DID", "REF-DIM", "IM-DID", "IM-DIM")))
 ```
 
 ## Feature table

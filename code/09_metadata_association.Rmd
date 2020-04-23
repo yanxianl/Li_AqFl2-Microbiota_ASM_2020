@@ -741,7 +741,7 @@ plot_grid(hmp_grob,
           ncol = 2) 
 
 # Export the assembled plot
-ggsave(here("result", "figures", "Figure 6.tiff"), width = 10, height = 12,
+ggsave(here("result", "figures", "Figure 5.tiff"), width = 10, height = 12,
        units = "in", dpi = 300, compression = "lzw")
 ```
 

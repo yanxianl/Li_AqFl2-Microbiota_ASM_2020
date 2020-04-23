@@ -49,7 +49,7 @@ source(here("code", "functions", "plot_prevalence.R"))
 ```{r}
 metadata <- read_tsv(here("data", "metadata.tsv"), comment = "#q2") 
 metadata <- rename(metadata, SampleID = "#SampleID") %>%
-  mutate(SampleType = factor(SampleType, c("REF-DIC", "REF-DIM", "IM-DIC", "IM-DIM", 
+  mutate(SampleType = factor(SampleType, c("REF-DID", "REF-DIM", "IM-DID", "IM-DIM", 
                                            "Extraction-blank", "Library-blank", "Mock"))) %>%
   arrange(SampleType) %>%
   mutate(SampleName = factor(SampleName, unique(SampleName)))
@@ -129,7 +129,7 @@ ggsave(here("result", "figures", "Figure S1.tiff"), width = 8, height = 5,
        units = "in", dpi = 300, compression = "lzw")
 ```
 
-Note that the extacted genomic DNA of the intestinal contents and mucosa were diluted 1:2 and 1:32, respectively, before running the amplicon PCR. The Cq values only reflect the bacterial DNA concentration in the DNA templates used for the amplicon PCR. 
+Note that the extacted genomic DNA of the intestinal digesta and mucosa were diluted 1:2 and 1:32, respectively, before running the amplicon PCR. The Cq values only reflect the bacterial DNA concentration in the DNA templates used for the amplicon PCR. 
 
 ## Identify reagent contaminants
 ### Data wrangling
@@ -228,7 +228,7 @@ ex <- filter(decontam, grepl("Pseudomonas", tax)) %>%
   group_by(OTU, SampleType) %>%
   summarize(n_not_zero = sum(Abundance != 0)) %>%
   pivot_wider(names_from = SampleType, values_from = n_not_zero) %>%
-  filter(`IM-DIC` == 18 & `Library-blank` == 0 | Mock == 2 & `Library-blank` == 0)
+  filter(`IM-DID` == 18 & `Library-blank` == 0 | Mock == 2 & `Library-blank` == 0)
 
 # gather contaminating features using their taxonomic labels
 contam <- select(decontam, OTU, tax) %>%
@@ -331,22 +331,21 @@ ps_nocontam <- subset_samples(ps_nocontam, SampleType != "Mock") %>%
 # Export data
 Export reagent contaminants as Table S1.
 ```{r}
-# gather the reagent contamiants and their relative abundance in the control samples
-contam_ctrl <- prune_taxa(taxa_names(ps_tss) %in% contam$OTU, ps_tss) %>%
-  subset_samples(SampleType %in% c("Extraction-blank", "Library-blank", "Mock")) %>%
+# gather the reagent contamiants and their relative abundance in the negative controls
+contam_neg <- prune_taxa(taxa_names(ps_tss) %in% contam$OTU, ps_tss) %>%
+  subset_samples(SampleType %in% c("Extraction-blank", "Library-blank")) %>%
   psmelt() %>%
   rename(FeatureID = OTU) %>%
   unite("Taxonomy", Kingdom:Species, sep = "; ") %>%
   select(FeatureID, Taxonomy, Abundance, SampleName) %>%
   mutate(FeatureID = factor(FeatureID, levels = unique(FeatureID)),
          SampleName = gsub("EB", "Extraction-blank", SampleName),
-         SampleName = gsub("LB", "Library-blank", SampleName),
-         SampleName = gsub("M", "Mock", SampleName)) %>%
+         SampleName = gsub("LB", "Library-blank", SampleName)) %>%
   arrange(FeatureID, SampleName) %>%
   pivot_wider(names_from = SampleName, values_from = Abundance) 
 
 # export data
-write.csv(contam_ctrl, here("result", "tables", "Table S1.csv"), row.names = FALSE)
+write.csv(contam_neg, here("result", "tables", "Table S1.csv"), row.names = FALSE)
 ```
 
 Export the filtered feature table.

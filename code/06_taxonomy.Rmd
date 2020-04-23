@@ -215,7 +215,7 @@ p_neg
 plot_grid(p_mock, p_neg, labels = "AUTO", ncol = 1) 
 
 # Export the assembled plot
-ggsave(here("result", "figures", "Figure 1.tiff"), width = 6, height = 8, 
+ggsave(here("result", "figures", "Figure S2.tiff"), width = 6, height = 8, 
        units = "in", dpi = 300, compression = "lzw")
 ```
 
@@ -316,7 +316,7 @@ plot_grid(p_phy_ind + theme(legend.position = "none"),
           rel_widths = c(3, 1, 3, 1)) 
 
 # Export the plot
-ggsave(here("result", "figures", "Figure 2.tiff"), width = 14, height = 10, 
+ggsave(here("result", "figures", "Figure 1.tiff"), width = 14, height = 10, 
        units = "in", dpi = 300, compression = "lzw")
 ```
 
@@ -327,25 +327,25 @@ Calculate feature prevalence
 phyloseq_s <- tax_glom(phyloseq, "Species")
 
 # Compute feature prevalence
-prev_rDic <- subset_samples(phyloseq_s, SampleType == "REF-DIC") %>% prevalence() 
-prev_rDim <- subset_samples(phyloseq_s, SampleType == "REF-DIM") %>% prevalence() 
-prev_iDic <- subset_samples(phyloseq_s, SampleType == "IM-DIC") %>% prevalence() 
-prev_iDim <- subset_samples(phyloseq_s, SampleType == "IM-DIM") %>% prevalence() 
+prev_rd <- subset_samples(phyloseq_s, SampleType == "REF-DID") %>% prevalence() 
+prev_rm <- subset_samples(phyloseq_s, SampleType == "REF-DIM") %>% prevalence() 
+prev_id <- subset_samples(phyloseq_s, SampleType == "IM-DID") %>% prevalence() 
+prev_im <- subset_samples(phyloseq_s, SampleType == "IM-DIM") %>% prevalence() 
 ```
 
 Get core features that are present in at least 80% samples under different sample types
 ```{r}
-core_taxa <- cbind.data.frame(prev_rDic, prev_rDim, prev_iDic, prev_iDim) %>%
+core_taxa <- cbind.data.frame(prev_rd, prev_rm, prev_id, prev_im) %>%
   rownames_to_column("featureID") %>%
   # get core features based on 80% prevalence threshold
-  filter(prev_rDic >= 0.8|prev_rDim >= 0.8|prev_iDic >= 0.8|prev_iDim >= 0.8)
+  filter(prev_rd >= 0.8|prev_rm >= 0.8|prev_id >= 0.8|prev_im >= 0.8)
 ```
 
 Add taxonomy to core features
 ```{r}
 core_taxa_tab <- rownames_to_column(tax_tab, "featureID") %>%
   inner_join(core_taxa, by = "featureID") %>%
-  rename("REF-DIC" = prev_rDic, "REF-DIM" = prev_rDim, "IM-DIC" = prev_iDic, "IM-DIM" = prev_iDim) %>%
+  rename("REF-DID" = prev_rd, "REF-DIM" = prev_rm, "IM-DID" = prev_id, "IM-DIM" = prev_im) %>%
   mutate(prev_all = rowSums(.[9:12])) %>%
   arrange(desc(prev_all)) %>%
   mutate_if(is.numeric, ~ifelse(.x == 1, 100, round(.x * 100, 1))) %>%
@@ -361,14 +361,13 @@ core_taxa_tab %>%
 # Export core taxa table as Table S2
 core_taxa_tab %>%
   gt() %>%
-  tab_header(title = "Table S2. The core taxa of digesta- and mucosa-associated 
-                      distal gut microbiota in Atlantic salmon fed different diets.") %>%
+  tab_header(title = "Table S2. The prevalence of core taxa in different sample types.") %>%
   tab_spanner(label = "Taxonomy", columns = 1:6) %>%
   tab_spanner(label = "Prevalence", columns = 7:ncol(core_taxa_tab)) %>%
   cols_align(align = "center") %>%
   tab_source_note("The core taxa were computed using a prevalence threshold at 80%.") %>%
   tab_source_note("Abbreviations: REF, reference diet; IM, insect meal diet; 
-                  DIC, distal intestine content; DIM, distal intestine mucosa.") %>%
+                  DID, distal intestine digesta; DIM, distal intestine mucosa.") %>%
   # the top/bottom border color can't be modified
   tab_style(style = list(cell_text(weight = "bold", size = 14), cell_borders(sides = "top", color = "white")),
             locations = cells_title(groups = "title")) %>%
@@ -379,21 +378,21 @@ core_taxa_tab %>%
 Convert feature prevalence to boolean values for plotting Venn's diagram
 ```{r}
 core_taxa_venn <- core_taxa %>% 
-  rename("REF-DIC" = prev_rDic, "REF-DIM" = prev_rDim, "IM-DIC" = prev_iDic, "IM-DIM" = prev_iDim) %>%
+  rename("REF-DID" = prev_rd, "REF-DIM" = prev_rm, "IM-DID" = prev_id, "IM-DIM" = prev_im) %>%
   mutate_if(is.numeric, ~if_else(.x >= 0.8, 1, 0))
 ```
 
 Make Venn diagram
 ```{r }
 venn(core_taxa_venn[2:5], ellipse = TRUE, zcolor = brewer.pal(n = 12, name = "Paired")[c(1,2,7,8)], 
-     cexil = 1, cexsn = 1)
+     cexil = 1, cexsn = 1, box = FALSE)
 ```
 
 ```{r, include=FALSE}
 # Export the plot
-tiff(here("result", "figures", "Figure 3.tiff"), compression = "lzw", units = "in", res = 300, height = 6, width = 6)
+tiff(here("result", "figures", "Figure 2.tiff"), compression = "lzw", units = "in", res = 300, height = 6, width = 6)
 venn(core_taxa_venn[2:5], ellipse = TRUE, zcolor = brewer.pal(n = 12, name = "Paired")[c(1,2,7,8)], 
-     cexil = 1, cexsn = 1)
+     cexil = 1, cexsn = 1, box = FALSE)
 dev.off()
 ```
 

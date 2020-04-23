@@ -311,7 +311,7 @@ ps <- plot_grid(
 plot_grid(ps, legend, rel_widths = c(6, 1))
 
 # Export the plot
-ggsave(here("result", "figures", "Figure 5.tiff"), width = 10, height = 6,
+ggsave(here("result", "figures", "Figure 4.tiff"), width = 10, height = 6,
        units = "in", dpi = 300, compression = "lzw")
 ```
 
@@ -499,8 +499,8 @@ permdisp <- list(Jaccard = permdisp_jac, "Unweighted UniFrac" = permdisp_uwuf,
                  Aitchison = permdisp_aitchison, "PHILR (Euclidean)" = permdisp_philr) %>%
   map_df(~.x$pairwise$permuted) %>%
   mutate(contrasts = names(permdisp_jac$pairwise$permuted)) %>%
-  filter(!contrasts %in% c("REF-DIC-IM-DIM", "REF-DIM-IM-DIC")) %>%
-  arrange(match(contrasts, c("REF-DIC-IM-DIC", "REF-DIM-IM-DIM", "REF-DIC-REF-DIM", "IM-DIC-IM-DIM"))) %>%
+  filter(!contrasts %in% c("REF-DID-IM-DIM", "REF-DIM-IM-DID")) %>%
+  arrange(match(contrasts, c("REF-DID-IM-DID", "REF-DIM-IM-DIM", "REF-DID-REF-DIM", "IM-DID-IM-DIM"))) %>%
   column_to_rownames("contrasts") %>%
   # multiple testing correction
   apply(2, function(x) p.adjust(x, method = "fdr")) %>%
@@ -508,7 +508,7 @@ permdisp <- list(Jaccard = permdisp_jac, "Unweighted UniFrac" = permdisp_uwuf,
   apply(2, function(x) round(x, digits = 3)) %>%
   t() %>%
   as.data.frame() %>%
-  rename_all(~gsub("DIC-", "DIC VS. ", .x)) %>%
+  rename_all(~gsub("DID-", "DID VS. ", .x)) %>%
   rename_all(~gsub("DIM-", "DIM VS. ", .x)) %>%
   rownames_to_column("Distance matrix")
 
@@ -531,12 +531,6 @@ Assemble boxplots
 ```{r, fig.width=10, fig.height=6}
 bps <- plot_grid(bp_jac, bp_uwuf, bp_aitchison, bp_philr, ncol = 2, labels = "AUTO", align = 'vh')
 bps
-```
-
-```{r, include=FALSE}
-# Export the assembled boxplots
-ggsave(here("result", "figures", "Figure S2.tiff"), width = 10, height = 6,
-       units = "in", dpi = 300, compression = "lzw")
 ```
 
 # Acknowledgements

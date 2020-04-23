@@ -32,7 +32,7 @@ root
 │   ├── dada2          # outputs from dada2 including the representative sequences and feature table
 │   ├── qiime2         # outputs from qiime2
 │   ├── preprocessing  # plots for the identification of contaminants; filtered feature table   
-│   ├── qiime2R        # .RData containing outputs from qiime2
+│   ├── qiime2R        # RData containing outputs from qiime2
 │   ├── permanova      # input data and results of the PERMANOVA
 │   └── maaslin2       # default outputs from the maaslin2 program
 ├── image   # pictures/photos relevant to the analysis
@@ -40,7 +40,7 @@ root
 │   ├── figures    
 │   ├── tables     
 │   └── README.md 
-├── LICENSE.md  # license for the copyright of scripts published in this repository
+├── LICENSE.md  
 └── README.md
 ```
 ### How to regenerate the figures/tables
@@ -51,15 +51,15 @@ To reproduce the figures and tables published with the paper, run the following 
   * Figure S1  
   * Table S1
 * 06_taxonomy.Rmd    
-  * Figure 1-3
+  * Figure 1-2, Figure S2
   * Table S2
 * 07_alpha-diversity.Rmd 
-  * Figure 4
+  * Figure 3
 * 08_beta-diversity.Rmd
-  * Figure 5, Figure S2
+  * Figure 4
   * Table 1-2
 * 09_metadata_association.Rmd 
-  * Figure 6, Figure S3-8
+  * Figure 5, Figure S3-8
   
 ### How to regenerate this repository
 #### Dependencies and locations

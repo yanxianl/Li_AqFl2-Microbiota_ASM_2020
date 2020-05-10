@@ -489,7 +489,7 @@ ggplot(sigAss_origin, aes(x = Sample_origin, y = abundance)) +
   labs(x = "Sample origin", y = "Relative abundance") + 
   scale_color_manual(values = brewer.pal(n = 8, name = "Dark2")[c(3,4)]) +
   theme_bw() +
-  theme(legend.position = "top")
+  theme(legend.position = "top", strip.text = element_text(face = "italic"))
 ```
 
 ```{r, include=FALSE}
@@ -528,7 +528,7 @@ ggplot(sigAss_diet, aes(x = Diet, y = abundance)) +
   labs(y = "Relative abundance", colour = "Sample origin") +
   scale_fill_brewer(palette = "Dark2") +
   theme_bw() +
-  theme(legend.position = "top")
+  theme(legend.position = "top", strip.text = element_text(face = "italic"))
 ```
 
 ```{r, include=FALSE}
@@ -567,7 +567,8 @@ ggplot(sigAss_lpc, aes(x = Histology_lpc, y = abundance)) +
   labs(x = "Lamina propria cellularity in distal gut", y = "Relative abundance", 
        colour = "Sample origin") +  
   scale_fill_brewer(palette = "Dark2") +
-  theme_bw()
+  theme_bw() +
+  theme(strip.text = element_text(face = "italic"))
 ```
 
 ```{r, include=FALSE}
@@ -588,7 +589,8 @@ filter(tab_sigAss, metadata == "DISI" ) %>%
                        labels = scales::percent_format(accuracy = 0.1)) +   
     labs(y = "Relative abundance", colour = "Sample origin") +   
     scale_fill_brewer(palette = "Dark2") +
-    theme_bw()
+    theme_bw() +
+    theme(strip.text = element_text(face = "italic"))
 ```
 
 ```{r, include=FALSE}
@@ -609,7 +611,8 @@ filter(tab_sigAss, metadata == "qPCR_immune_response" ) %>%
     labs(x = "qPCR: immune responses in distal gut (PC1 of PCA)", y = "Relative abundance",
          colour = "Sample origin") +  
     scale_fill_brewer(palette = "Dark2") +
-    theme_bw()
+    theme_bw() +
+    theme(strip.text = element_text(face = "italic"))
 ```
 
 ```{r, include=FALSE}
@@ -630,7 +633,8 @@ filter(tab_sigAss, metadata == "qPCR_barrier_function" ) %>%
     labs(x = "qPCR: barrier function in distal gut (PC1 of PCA)", y = "Relative abundance",
          colour = "Sample origin") +  
     scale_fill_brewer(palette = "Dark2") +
-    theme_bw()
+    theme_bw() +
+    theme(strip.text = element_text(face = "italic"))
 ```
 
 ```{r, include=FALSE}
@@ -643,21 +647,23 @@ Highlight sample origin effects
 ```{r highlights_origin}
 p_origin <- sigAss_origin %>% 
   filter(feature %in% c("Brevinema andersonii", "f__Spirochaetaceae")) %>%
-  mutate(labs = ifelse(grepl("__", feature), paste0("bold(", feature, ")"), paste0("bolditalic(", feature, ")")),
-         labs = gsub("\\s+", "~", labs)) %>%
-  mutate(feature = factor(feature, labels = unique(labs))) %>%
+  # italize genus/species names only
+  #mutate(labs = ifelse(grepl("__", feature), paste0("bold(", feature, ")"), paste0("bolditalic(", feature, ")")),
+         #labs = gsub("\\s+", "~", labs)) %>%
+  #mutate(feature = factor(feature, labels = unique(labs))) %>%
   ggplot(aes(x = Sample_origin, y = abundance)) +
   geom_boxplot(outlier.shape = NA, width = 0.3) +
   geom_jitter(aes(colour = Diet), shape = 16, position = position_jitter(0.1)) +
   geom_text(aes(x = Inf, y = Inf, label = ann_boxplot), size = 3, hjust = 1, vjust = 1.05) +
-  facet_wrap(~feature, ncol = 2, scales = "free_y", labeller = label_parsed) +
+  facet_wrap(~feature, ncol = 2, scales = "free_y") + # set'labeller = label_parsed' if using regular expressions
   scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.5)), 
                      breaks = 0:5*0.2, labels = scales::percent_format(accuracy = 1)) +
   scale_color_manual(values = brewer.pal(n = 8, name = "Dark2")[c(3,4)]) +
   labs(x = "Sample origin", y = "Relative abundance") + 
   theme_bw() +
   theme(legend.margin = margin(0, 0, 0, 0),
-        legend.box.margin = margin(-5, -5, -5, -5))
+        legend.box.margin = margin(-5, -5, -5, -5),
+        strip.text = element_text(face = "bold.italic"))
 
 p_origin
 ```
@@ -717,7 +723,7 @@ p_barr <- tab_sigAss %>%
          colour = "Sample origin") +  
     scale_color_manual(values = brewer.pal(n = 8, name = "Dark2")[c(1,2)]) +
     theme_bw() +
-    theme(strip.text = element_text(face = "bold"),
+    theme(strip.text = element_text(face = "bold.italic"),
           legend.margin = margin(0, 0, 0, 0),
           legend.box.margin = margin(-5, -5, -5, -5))
 

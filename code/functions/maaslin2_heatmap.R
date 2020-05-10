@@ -185,13 +185,15 @@ maaslin2_heatmap <-
     breaks <- seq(-1*range_value, range_value, by = 1)
     color <- colorRamp2(c(-range_value, 0, range_value), color)
     
-    # use italic font for genus/species names
+    # italize taxonomic labels
     if (italize_rownames == TRUE){
       expr <- enframe(rownames(mat1), name = NULL) %>%
         # convert rownames to expressions
-        mutate(row_lab = ifelse(grepl("__", value), 
-                                paste0("plain(", value, ")"), 
-                                paste0("italic(", value, ")")),
+        mutate(row_lab = paste0("italic(", value, ")"), # italize all taxonomic ranks
+               # italize genus/species names only
+               #row_lab = ifelse(grepl("__", value), 
+                               #paste0("plain(", value, ")"), 
+                               #paste0("italic(", value, ")")),
                # tilde (~) gets handled as a "space" in R expressions
                row_lab = gsub("\\s+", "~", row_lab)) 
       

@@ -241,7 +241,7 @@ p_phy_ind <- make_taxa_barplot(table = tab_phy,
                                plot_mean = FALSE, 
                                cluster_sample = TRUE,
                                sample_label = FishID,
-                               italize_taxa_name = FALSE)
+                               italize_taxa_name = TRUE)
 # Plot taxa using group means
 p_phy_mean <- make_taxa_barplot(table = tab_phy, 
                                 metadata = metadata, 
@@ -251,7 +251,7 @@ p_phy_mean <- make_taxa_barplot(table = tab_phy,
                                 plot_mean = TRUE, 
                                 cluster_sample = FALSE,
                                 #sample_label = FishID,
-                                italize_taxa_name = FALSE)
+                                italize_taxa_name = TRUE)
                                 
 p_phy_mean <- p_phy_mean + labs(x = "", y = "")
 ```

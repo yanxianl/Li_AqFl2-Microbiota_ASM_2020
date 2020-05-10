@@ -148,9 +148,12 @@ make_taxa_barplot <- function(
   # make R regular expressions for costomizing legend text
   if(italize_taxa_name == T){
     labs <- forplot %>%
-      mutate(Taxa = ifelse(grepl("__|Others", Taxa), 
+      mutate(Taxa = ifelse(Taxa == "Others", # italize all taxonomic ranks
                            paste0("plain(", Taxa, ")"), 
-                           paste0("italic(", Taxa, ")")),
+                           paste0("italic(", Taxa, ")")), 
+            #Taxa = ifelse(grepl("__|Others", Taxa), # italize genus/species names only
+                          #paste0("plain(", Taxa, ")"), 
+                          #paste0("italic(", Taxa, ")")),
              # tilde (~) is recognized as a "space" in R expressions
              Taxa = gsub("\\s+", "~", Taxa))
   }

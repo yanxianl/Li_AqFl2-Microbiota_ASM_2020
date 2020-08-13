@@ -41,8 +41,8 @@ make_taxa_barplot <- function(
   
   if(missing(ntaxa) & nrow(table)>10){
     ntaxa = 10} else if (missing(ntaxa)) {
-    ntaxa = nrow(table)
-      }
+      ntaxa = nrow(table)
+    }
   
   if(missing(plot_mean)){plot_mean = F}
   
@@ -63,6 +63,8 @@ make_taxa_barplot <- function(
     forplot <- inner_join(forplot, metadata, by = "SampleID")
   }
   
+  group_by <- enquo(group_by)
+  
   # hierarchical clustering of samples
   if(missing(cluster_sample)){cluster_sample = F}
   
@@ -79,8 +81,6 @@ make_taxa_barplot <- function(
         labels()
       
     } else {
-      group_by <- enquo(group_by)
-      
       hclust <- select(forplot, Taxa, SampleID, Abundance, !!group_by) %>%
         group_nest(!!group_by) %>%
         mutate(hclust = map(data, ~{
@@ -103,27 +103,26 @@ make_taxa_barplot <- function(
   
   # make an initial plot
   plot <- ggplot(forplot, aes(x = SampleID, y = Abundance, fill = Taxa)) +
-            geom_bar(stat = "identity") +
-            labs(x = "SampleID", y = "Relative abundance (%)") +
-            scale_y_continuous(breaks = 0:10*10, expand = expansion(mult = c(0, 0.02))) + 
-            theme_cowplot() +
-            theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-                  #legend.justification = "top",
-                  legend.text.align = 0) 
+    geom_bar(stat = "identity") +
+    labs(x = "SampleID", y = "Relative abundance (%)") +
+    scale_y_continuous(breaks = 0:10*10, expand = expansion(mult = c(0, 0.02))) + 
+    theme_cowplot() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+          legend.justification = "top",
+          legend.text.align = 0) 
   
   # use group means for plotting if plot_mean = T
   if(!missing(group_by) & plot_mean == T){
-    group_by <- enquo(group_by)
     plot <- group_by(forplot, !!group_by, Taxa) %>% 
-            summarise(Abundance_mean = mean(Abundance)) %>%
-            ggplot(aes(x = !!group_by, y = Abundance_mean, fill = Taxa)) +
-              geom_bar(stat = "identity") +
-              labs(x = group_by, y = "Relative abundance (%)") +
-              scale_y_continuous(breaks = 0:10*10, expand = expansion(mult = c(0, 0.02))) + 
-              theme_cowplot() +
-              theme(legend.text = element_text(size = 10), 
-                    #legend.justification = "top",
-                    legend.text.align = 0) 
+      summarise(Abundance_mean = mean(Abundance)) %>%
+      ggplot(aes(x = !!group_by, y = Abundance_mean, fill = Taxa)) +
+      geom_bar(stat = "identity") +
+      labs(x = group_by, y = "Relative abundance (%)") +
+      scale_y_continuous(breaks = 0:10*10, expand = expansion(mult = c(0, 0.02))) + 
+      theme_cowplot() +
+      theme(legend.text = element_text(size = 10), 
+            #legend.justification = "top",
+            legend.text.align = 0) 
   } 
   
   # add facets to the plot if group_by = T
@@ -151,13 +150,13 @@ make_taxa_barplot <- function(
       mutate(Taxa = ifelse(Taxa == "Others", # italize all taxonomic ranks
                            paste0("plain(", Taxa, ")"), 
                            paste0("italic(", Taxa, ")")), 
-            #Taxa = ifelse(grepl("__|Others", Taxa), # italize genus/species names only
-                          #paste0("plain(", Taxa, ")"), 
-                          #paste0("italic(", Taxa, ")")),
+             #Taxa = ifelse(grepl("__|Others", Taxa), # italize genus/species names only
+             #paste0("plain(", Taxa, ")"), 
+             #paste0("italic(", Taxa, ")")),
              # tilde (~) is recognized as a "space" in R expressions
              Taxa = gsub("\\s+", "~", Taxa))
   }
-   
+  
   # define color scheme; use italic font for legend text if italize_taxa_name = T 
   if(ntaxa <= 11){
     if(italize_taxa_name == T){
@@ -188,7 +187,7 @@ make_taxa_barplot <- function(
     plot <- plot + 
       scale_x_discrete(breaks = xlab$SampleID, labels = xlab$sample_label) +
       labs(x = sample_label)
-    }
+  }
   
   return(plot)
 }

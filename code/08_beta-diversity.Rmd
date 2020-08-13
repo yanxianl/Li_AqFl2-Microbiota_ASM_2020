@@ -299,12 +299,18 @@ plot_ly(x = pco_philr[,"Axis.1"], y = pco_philr[,"Axis.2"], z = pco_philr[,"Axis
 # Get legend
 legend <- get_legend(p_jac)
 
-# Assemble ordination plots
+# Reduce point size
+p_jac$layers[[3]]$aes_params$size <- 3 
+p_uwuf$layers[[3]]$aes_params$size <- 3
+p_aitchison$layers[[3]]$aes_params$size <- 3
+p_philr$layers[[3]]$aes_params$size <- 3
+
+# Assemble plots
 ps <- plot_grid(
-  p_jac + geom_point(size = 2) + theme(legend.position = "none", plot.title = element_blank()), 
-  p_uwuf + geom_point(size = 2) + theme(legend.position = "none", plot.title = element_blank()),
-  p_aitchison + geom_point(size = 2) + theme(legend.position = "none", plot.title = element_blank()), 
-  p_philr + geom_point(size = 2) + theme(legend.position = "none", plot.title = element_blank()),
+  p_jac + theme(legend.position = "none", plot.title = element_blank()), 
+  p_uwuf + theme(legend.position = "none", plot.title = element_blank()),
+  p_aitchison + theme(legend.position = "none", plot.title = element_blank()), 
+  p_philr + theme(legend.position = "none", plot.title = element_blank()),
   ncol = 2, labels = "AUTO", align = 'vh')
 
 # Add legend to the assembled plot

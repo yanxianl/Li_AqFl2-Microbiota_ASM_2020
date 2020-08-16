@@ -11,7 +11,7 @@ RUN apt-get update -y\
 && R -e "install.packages(c('BiocManager','devtools'))"\
 && R -e "BiocManager::install(c('biomformat','Biostrings','ComplexHeatmap','dada2','DECIPHER','edgeR','metagenomeSeq','microbiome','phangorn','phyloseq','philr'))"\
 && R -e "devtools::install_github(c('rstudio/gt@f793b33','jbisanz/MicrobeR@7207507','jbisanz/qiime2R@cd07f40'),upgrade='never')"\
-&& R -e "devtools::install_bitbucket("biobakery/maaslin2@default",ref="0.99.12",upgrade='never')"
+&& R -e "devtools::install_bitbucket('biobakery/maaslin2@default',ref='0.99.12',upgrade='never')"
 
 USER ${NB_USER}
 RUN wget https://github.com/yanxianl/Li_AqFl2-Microbiota_ASM_2020/raw/master/DESCRIPTION && R -e "options(repos = list(CRAN = 'http://mran.revolutionanalytics.com/snapshot/2020-03-16/')); devtools::install_deps()"

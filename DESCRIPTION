@@ -23,7 +23,6 @@ Depends:
     factoextra,
     ggResidpanel,
     ggsignif,
-    ggstatsplot,
     gridExtra,
     gt,
     here,

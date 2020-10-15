@@ -232,21 +232,28 @@ tab_phy <- Summarize.Taxa(count_tab, tax_tab)$Phylum %>%
 
 Make taxa barplot
 ```{r}
-# Reorder factor "SampleType" so that digesta and mucosa sample from the same fish align vertically
-metadata <- rownames_to_column(metadata, "SampleID") %>%
-  mutate(SampleType = factor(SampleType, levels = c("REF-DID", "IM-DID", "REF-DIM", "IM-DIM"))) %>%
-  column_to_rownames("SampleID")
-
-# Plot taxa
-p_phy <- make_taxa_barplot(table = tab_phy, 
-                           metadata = metadata, 
-                           group_by = SampleType, 
-                           ntaxa = 10,
-                           nrow = 2,
-                           plot_mean = FALSE, 
-                           cluster_sample = F,
-                           sample_label = FishID,
-                           italize_taxa_name = TRUE)
+# Plot taxa on individual basis
+p_phy_ind <- make_taxa_barplot(table = tab_phy, 
+                               metadata = metadata, 
+                               group_by = SampleType, 
+                               ntaxa = 10,
+                               nrow = 1,
+                               plot_mean = FALSE, 
+                               cluster_sample = FALSE,
+                               sample_label = FishID,
+                               italize_taxa_name = TRUE)
+# Plot taxa using group means
+p_phy_mean <- make_taxa_barplot(table = tab_phy, 
+                                metadata = metadata, 
+                                group_by = SampleType, 
+                                ntaxa = 10,
+                                nrow = 1,
+                                plot_mean = TRUE, 
+                                cluster_sample = FALSE,
+                                #sample_label = FishID,
+                                italize_taxa_name = TRUE)
+                                
+p_phy_mean <- p_phy_mean + labs(x = "", y = "")
 ```
 
 ## Genus-level 
@@ -273,37 +280,55 @@ tab_gen <- Summarize.Taxa(count_tab, tax_tab)$Genus %>%
 
 Make taxa barplot showing top 10 genera
 ```{r}
-p_gen <- make_taxa_barplot(table = tab_gen, 
-                           metadata = metadata, 
-                           group_by = SampleType, 
-                           ntaxa = 10,
-                           nrow = 2,
-                           plot_mean = FALSE, 
-                           cluster_sample = FALSE,
-                           sample_label = FishID,
-                           italize_taxa_name = TRUE)
+# Plot taxa on individual basis
+p_gen_ind <- make_taxa_barplot(table = tab_gen, 
+                               metadata = metadata, 
+                               group_by = SampleType, 
+                               ntaxa = 10,
+                               nrow = 1,
+                               plot_mean = FALSE, 
+                               cluster_sample = FALSE,
+                               sample_label = FishID,
+                               italize_taxa_name = TRUE)
+# Plot taxa using group means
+p_gen_mean <- make_taxa_barplot(table = tab_gen, 
+                                metadata = metadata, 
+                                group_by = SampleType, 
+                                ntaxa = 10,
+                                nrow = 1,
+                                plot_mean = TRUE, 
+                                cluster_sample = TRUE,
+                                sample_label = FishID,
+                                italize_taxa_name = TRUE)
+                                
+p_gen_mean <- p_gen_mean + labs(x = "", y = "")
 ```
 
 ## Assemble plots 
-```{r, fig.width=10, fig.height=10}
-plot_grid(p_phy, p_gen, labels = c("A", "B"), ncol = 1, align = 'v', axis = "lr") 
+```{r, fig.width=14, fig.height=10}
+plot_grid(p_phy_ind + theme(legend.position = "none"), 
+          p_phy_mean + theme(axis.text.x = element_text(angle = 45, hjust = 1), 
+                             plot.margin = margin(l = -0.8, unit = "cm"),
+                             legend.box.margin=margin(l = -10, r = 3)),
+          p_gen_ind + theme(legend.position = "none"), 
+          p_gen_mean + theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                             plot.margin = margin(l = -0.8, unit = "cm"), 
+                             legend.box.margin=margin(l = -10, r = 3)),
+          labels = c("A", "", "B", ""), ncol = 2, align = 'hv', axis = "tb", 
+          rel_widths = c(3, 1, 3, 1)) 
 
 # Export the plot
-ggsave(here("result", "figures", "Figure 1.tiff"), width = 10, height = 10, 
+ggsave(here("result", "figures", "Figure 1.tiff"), width = 14, height = 10, 
        units = "in", dpi = 300, compression = "lzw")
 ```
-
 # Core microbiome 
 Calculate feature prevalence
 ```{r}
-# Collapse feature table at species level
-phyloseq_s <- tax_glom(phyloseq, "Species")
-
 # Compute feature prevalence
-prev_rd <- subset_samples(phyloseq_s, SampleType == "REF-DID") %>% prevalence() 
-prev_rm <- subset_samples(phyloseq_s, SampleType == "REF-DIM") %>% prevalence() 
-prev_id <- subset_samples(phyloseq_s, SampleType == "IM-DID") %>% prevalence() 
-prev_im <- subset_samples(phyloseq_s, SampleType == "IM-DIM") %>% prevalence() 
+prev_rd <- subset_samples(phyloseq, SampleType == "REF-DID") %>% prevalence() 
+prev_rm <- subset_samples(phyloseq, SampleType == "REF-DIM") %>% prevalence() 
+prev_id <- subset_samples(phyloseq, SampleType == "IM-DID") %>% prevalence() 
+prev_im <- subset_samples(phyloseq, SampleType == "IM-DIM") %>% prevalence() 
 ```
 
 Get core features that are present in at least 80% samples under different sample types
@@ -323,7 +348,8 @@ core_taxa_tab <- rownames_to_column(tax_tab, "featureID") %>%
   arrange(desc(prev_all)) %>%
   mutate_if(is.numeric, ~ifelse(.x == 1, 100, round(.x * 100, 1))) %>%
   mutate_if(is.numeric, ~paste0(.x, "%")) %>%
-  mutate_if(is.factor, ~gsub("*.__|uncultured.*|Ambiguous.*|metagenome", "", .x)) %>%
+  mutate_if(is.character, ~gsub("*.__|uncultured.*|Ambiguous.*|metagenome", "", .x)) %>%
+  map_df(~replace_na(.x, "")) %>%
   select(-featureID, -Kingdom, -prev_all) 
 
 core_taxa_tab %>%
@@ -334,11 +360,11 @@ core_taxa_tab %>%
 # Export core taxa table as Table S2
 core_taxa_tab %>%
   gt() %>%
-  tab_header(title = "Table S2. The prevalence of core taxa in different sample types.") %>%
+  tab_header(title = "Table S2. The prevalence of core ASVs in different sample types.") %>%
   tab_spanner(label = "Taxonomy", columns = 1:6) %>%
   tab_spanner(label = "Prevalence", columns = 7:ncol(core_taxa_tab)) %>%
   cols_align(align = "center") %>%
-  tab_source_note("The core taxa were computed using a prevalence threshold at 80%.") %>%
+  tab_source_note("The core ASVs were computed using a prevalence threshold at 80%.") %>%
   tab_source_note("Abbreviations: REF, reference diet; IM, insect meal diet; 
                   DID, distal intestine digesta; DIM, distal intestine mucosa.") %>%
   # the top/bottom border color can't be modified

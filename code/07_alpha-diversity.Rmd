@@ -59,26 +59,23 @@ metadata <- data.frame(sample_data(phyloseq), check.names = FALSE)
 # Compute alpha-diversity
 Here, we compute the alpha-diversity via the `alpha()` and `pd()` function from the *microbiome* and *picante* package, respectively. 
 ```{r compute-adiv}
-# We'll use species-level feature table for estimating alpha-diversity
-phyloseq_s <- tax_glom(phyloseq, "Species")
-
 # Compute Observed features, Peilou's Evenness and Shannon's index
-adiv_npd <- alpha(phyloseq_s, index = c("observed", "evenness_pielou", "diversity_shannon")) %>%
+adiv_npd <- alpha(phyloseq, index = c("observed", "evenness_pielou", "diversity_shannon")) %>%
   rownames_to_column("SampleID")
 
 # Compute Faith's Phylogenetic Diversity
-adiv_pd <- pd(samp = t(otu_table(phyloseq_s)), tree = phy_tree(phyloseq), include.root = F) %>%
+adiv_pd <- pd(samp = t(otu_table(phyloseq)), tree = phy_tree(phyloseq), include.root = F) %>%
   select(PD) %>%
   rownames_to_column("SampleID")
 
 # Putting together
 adiv <- inner_join(adiv_npd, adiv_pd, by = "SampleID") %>%
   inner_join(rownames_to_column(metadata, "SampleID"), by = "SampleID") %>%
-  rename("observed species" = observed, "Pielou's evenness" = evenness_pielou, 
+  rename("observed ASVs" = observed, "Pielou's evenness" = evenness_pielou, 
          "Shannon's index" = diversity_shannon, "Faith's PD" = PD) %>%
-  gather("adiv", "value", "observed species":"Faith's PD") %>%
+  gather("adiv", "value", "observed ASVs":"Faith's PD") %>%
   mutate(FishID = as.character(FishID), NetPen = as.character(NetPen), 
-         adiv = factor(adiv, levels = c("observed species", "Pielou's evenness", "Shannon's index", "Faith's PD")))
+         adiv = factor(adiv, levels = c("observed ASVs", "Pielou's evenness", "Shannon's index", "Faith's PD")))
 ```
 
 # Plot alpha-diversity
@@ -107,12 +104,12 @@ lme <- lapply(adiv_spl, function(x)
               lmer(log(value + 1) ~ Diet * SampleOrigin + (1|FishID) + (1|NetPen), data = x)) 
 ```
 
-Three of the fitted models are singular. Let's look at the fitted models and find out the singular fits.
+One of the fitted models is singular. Let's look at the fitted models and find out which one is singular.
 ```{r find-singularFit}
 lme
 ```
 
-From the model outputs, we can see that the standard deviation of random effect `NetPen` for observed species, Pielou's evenness and Faith's PD is zero, which indicates boundary fits. We'll update these models by removing the random effect `NetPen` from the models.
+From the model outputs, we can see that the standard deviation of random effect `NetPen` for Pielou's evenness is zero, which indicates boundary fit. We'll update the model by removing the random effect `NetPen`.
 ```{r update-model, message=TRUE}
 lme <- lapply(lme, function(x) 
               if(is.null(x@optinfo$conv$lme4$messages)) {
@@ -122,7 +119,7 @@ lme <- lapply(lme, function(x)
               )
 ```
 
-The updated models are not singular after removing the random effect `NetPen`. We proceed to model diagnostics.
+The updated model is not singular after removing the random effect `NetPen`. We proceed to model diagnostics.
 
 ## Model diagnostics 
 Here we use the *ggResidpanel* package to produce a panel of plots for residual diagnostics.
@@ -134,14 +131,14 @@ lapply(
     # Extract titles 
     main <- ggdraw() + draw_label(names(lme)[x], fontface='bold')
     # Make residual diagnostic plots
-    resid_panel <- resid_panel(lme[[x]], plots = "all", , qqbands = TRUE)
+    resid_panel <- resid_panel(lme[[x]], plots = "all", qqbands = TRUE)
     # Assemble plots
     plot_grid(main, resid_panel, ncol = 1, rel_heights = c(1, 10))
   }
 )
 ```
 
-The homogeneity of variance for the observed species and Faith's PD is not very good, but we can live with that.
+Visual inspection of residual plots does not reveal obvious deviations from homoscedasticity or normality. Let's proceed to the the significance testing of fixed effects. 
 
 ## Inference
 For the significance testing of fixed effects, the likelihood ratio test (LRT) is often used. However, it can produce anti-conservative *p* values in situations where the data is unbalanced or the number of parameters is large compared to the number of observations. A better alternative is to use F test with Satterthwaite/Kenward-Roger approximation available from the *lmerTest* package.
@@ -218,7 +215,7 @@ anno2 <- filter(p_cc, Diet != ".") %>%
 anno <- bind_rows(anno1, anno2) %>%
   select(adiv, start, end, p.value) %>%
   # the columns are arranged in a way that p value annotation starts from left to right
-  arrange(match(adiv, c("observed species", "Pielou's evenness", "Shannon's index", "Faith's PD")),
+  arrange(match(adiv, c("observed ASVs", "Pielou's evenness", "Shannon's index", "Faith's PD")),
           match(start, c("REF-DID", "REF-DIM", "IM-DID")),
           match(end, c("REF-DIM", "IM-DID"))) %>%
   # the following 4 lines of code convert p values to the corresponding asterisks
@@ -227,9 +224,9 @@ anno <- bind_rows(anno1, anno2) %>%
          p.value = ifelse(p.value >= 0.01 & p.value < 0.05, "*", p.value),
          p.value = ifelse(p.value >= 0.05, "NS", p.value),
          # position of p value label on the y axis 
-         y = c(180, 195, 210, 225, 46, 50, 54, 58),
+         y = c(720, 770, 830, 890, 80, 85, 92, 99),
          # ensure alpha-diversity indices are plotted in the desired order
-         adiv = factor(adiv, levels = c("observed species", "Pielou's evenness", "Shannon's index", "Faith's PD"))) 
+         adiv = factor(adiv, levels = c("observed ASVs", "Pielou's evenness", "Shannon's index", "Faith's PD"))) 
 ```
 
 ## Annotate the plot

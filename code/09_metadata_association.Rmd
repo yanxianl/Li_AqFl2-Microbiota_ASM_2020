@@ -365,7 +365,7 @@ Add the extracted principle components to the metadata.
 ```{r add_pcs}
 metadata <- bind_cols(metadata, imm_pc1, barr_pc1) %>%
   mutate(Diet = factor(Diet, c("REF", "IM"))) %>%
-  rename(Sample_origin = SampleOrigin) %>%
+  rename(Sample_origin = SampleOrigin, Histology_LPC = Histology_lpc) %>%
   column_to_rownames("rowname")
   
 # Check if the rows were correctly matched during the table merging
@@ -376,7 +376,7 @@ identical(metadata$FishID, metadata$FishID2)
 Define the fixed and random effects of interest.
 ```{r define_fixef_ranef}
 # Fixed effects
-fixef <- c("Diet", "Sample_origin", "DISI", "Histology_lpc", "qPCR_immune_response", "qPCR_barrier_function")
+fixef <- c("Diet", "Sample_origin", "DISI", "Histology_LPC", "qPCR_immune_response", "qPCR_barrier_function")
 
 # Random effects
 ranef <- c("FishID", "NetPen")

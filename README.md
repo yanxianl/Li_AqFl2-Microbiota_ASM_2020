@@ -89,7 +89,7 @@ To reproduce the figures and tables published with the paper, run the following 
   * knitr_1.27 [CRAN]
   * lmerTest_3.1-1 [CRAN]
   * lsr_0.5 [CRAN] 
-  * Maaslin2_1.0.0 [Bioconductor 3.10]
+  * Maaslin2_1.2.0 [github::biobakery/Maaslin2@1.2.0]
   * MicrobeR_0.3.1 [github::jbisanz/MicrobeR@7207507]
   * microbiome_1.8.0 [Bioconductor 3.10] 
   * PerformanceAnalytics_1.5.3 [CRAN]

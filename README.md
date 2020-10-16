@@ -44,7 +44,7 @@ root
 └── README.md
 ```
 ### How to regenerate the figures/tables
-Computationally lightweight RMarkdown files ([03, 05-09]_\*.Rmd) can be directly run online by clicking the ![Launch Binder](http://mybinder.org/badge_logo.svg) badge located at the top of this README file. After clicking the badge, this repository will be turned into an RStudio instance that has all the dependencies installed (the build may take hours to complete). The instance has limited computational resources (1 cpu; 1~2GB RAM) and is not intended for running tasks requiring intensive computation, i.e., 01_dada2.Rmd.
+Computationally lightweight RMarkdown files ([03, 05-09]_\*.Rmd) can be directly run online by clicking the ![Launch Binder](http://mybinder.org/badge_logo.svg) badge located at the top of this README file. After clicking the badge, this repository will be turned into an RStudio instance that has all the dependencies installed. The instance has limited computational resources (1 cpu; 1~2GB RAM) and is not intended for running tasks requiring intensive computation, i.e., 01_dada2.Rmd.
 
 To reproduce the figures and tables published with the paper, run the following RMarkdown files:
 * 03_preprocessing.Rmd

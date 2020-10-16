@@ -540,10 +540,10 @@ ggsave(here("result", "figures", "Figure S4.tiff"), width = 11, height = 16,
 Make boxplot for hisstological scores, color points by Sample origin.
 ```{r boxplot_histology_lpc, fig.width=6, fig.height=3}
 # Add number of non-zero observation to text annotation
-ann_lpc <- filter(tab_sigAss, metadata == "Histology_lpc" ) %>%
-  group_by(feature, Histology_lpc) %>%
+ann_lpc <- filter(tab_sigAss, metadata == "Histology_LPC" ) %>%
+  group_by(feature, Histology_LPC) %>%
   summarize(N = n(), N_nonzero_lpc = paste0(sum(abundance != 0), "/", N)) %>%
-  mutate(ann_lpc = paste0(paste0("N.not.zero(", Histology_lpc, "): ", N_nonzero_lpc))) %>%
+  mutate(ann_lpc = paste0(paste0("N.not.zero(", Histology_LPC, "): ", N_nonzero_lpc))) %>%
   group_by(feature) %>%
   summarize(n = sum(N), ann_lpc = paste(ann_lpc, collapse = "\n")) %>%
   uncount(n) %>%
@@ -551,13 +551,13 @@ ann_lpc <- filter(tab_sigAss, metadata == "Histology_lpc" ) %>%
   select(feature, ann_lpc)
 
 # Make a dataframe for plotting
-sigAss_lpc <- filter(tab_sigAss, metadata == "Histology_lpc" ) %>%
+sigAss_lpc <- filter(tab_sigAss, metadata == "Histology_LPC" ) %>%
   arrange(feature) %>%
   bind_cols(ann_lpc) %>%
   mutate(ann_boxplot = paste0(ann_boxplot, "\n", ann_lpc)) 
 
 # Make plots
-ggplot(sigAss_lpc, aes(x = Histology_lpc, y = abundance)) +
+ggplot(sigAss_lpc, aes(x = Histology_LPC, y = abundance)) +
   geom_boxplot(width = 0.5, outlier.shape = NA) +
   geom_jitter(aes(colour = Sample_origin), shape = 16, position = position_jitter(0.2)) +
   geom_text(aes(x = Inf, y = Inf, label = ann_boxplot), size = 3, hjust = 1, vjust = 1.05) +

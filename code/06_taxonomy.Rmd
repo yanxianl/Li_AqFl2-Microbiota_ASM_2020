@@ -348,7 +348,7 @@ core_taxa_tab <- rownames_to_column(tax_tab, "featureID") %>%
   arrange(desc(prev_all)) %>%
   mutate_if(is.numeric, ~ifelse(.x == 1, 100, round(.x * 100, 1))) %>%
   mutate_if(is.numeric, ~paste0(.x, "%")) %>%
-  mutate_if(is.character, ~gsub("*.__|uncultured.*|Ambiguous.*|metagenome", "", .x)) %>%
+  mutate_if(is.factor, ~gsub("*.__|uncultured.*|Ambiguous.*|metagenome", "", .x)) %>%
   map_df(~replace_na(.x, "")) %>%
   select(-featureID, -Kingdom, -prev_all) 
 

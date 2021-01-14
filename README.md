@@ -2,7 +2,8 @@
   [![Launch Rstudio Binder](http://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/yanxianl/Li_AqFl2-Microbiota_ASM_2020/master?urlpath=rstudio)
 <!-- badges: end -->
 
-## Differential response of digesta- and mucosa-associated intestinal microbiota to dietary black soldier fly (*Hermetia illucens*) larvae meal in seawater phase Atlantic salmon (*Salmo salar*)
+## Differential response of digesta- and mucosa-associated intestinal microbiota to dietary insect meal during the seawater phase of Atlantic salmon
+### doi: https://doi.org/10.1186/s42523-020-00071-3
 
 Intestinal digesta is commonly used for studying responses of microbiota to dietary shifts, yet evidence is accumulating that it represents an incomplete view of the intestinal microbiota. In a 16-week seawater feeding trial, Atlantic salmon (*Salmo salar*) were fed either a commercially-relevant reference diet or an insect meal diet containing ~15% black soldier fly (*Hermetia illucens*) larvae meal. The digesta- and mucosa-associated distal intestinal microbiota were profiled by 16S rRNA gene sequencing. Regardless of diet, we observed substantial differences between digesta- and mucosa-associated intestinal microbiota. Microbial richness and diversity were much higher in the digesta than the mucosa. The insect meal diet altered the distal intestinal microbiota resulting in higher microbial richness and diversity. The diet effect, however, depended on the sample origin. Digesta-associated intestinal microbiota showed more pronounced changes than the mucosa-associated microbiota. Lastly, multivariate association analyses identified two mucosa-enriched taxa, *Brevinema andersonii* and unclassified *Spirochaetaceae*, associated with the expression of genes related to immune responses and barrier function in the distal intestine, respectively. Overall, our data clearly indicate that responses in digesta- and mucosa-associated microbiota to dietary inclusion of insect meal differ, with the latter being more resilient to dietary changes.
 
@@ -57,7 +58,7 @@ To reproduce the figures and tables published with the paper, run the following 
   * Figure 3
 * 08_beta-diversity.Rmd
   * Figure 4
-  * Table 1-2
+  * Table 2-3
 * 09_metadata_association.Rmd 
   * Figure 5, Figure S3-8
   

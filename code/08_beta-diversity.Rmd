@@ -385,8 +385,8 @@ permanova
 ```
 
 ```{r include=FALSE}
-# Export PERMANOVA results as Table 1
-gtsave(permanova, here("result", "tables", "Table 1.html"))
+# Export PERMANOVA results as Table 2
+gtsave(permanova, here("result", "tables", "Table 2.html"))
 ```
 
 # PERMDISP 
@@ -528,8 +528,8 @@ permdisp
 ```
 
 ```{r, include=FALSE}
-# Export PERMDISP results as Table 2
-gtsave(permdisp, here("result", "tables", "Table 2.html"))
+# Export PERMDISP results as Table 3
+gtsave(permdisp, here("result", "tables", "Table 3.html"))
 ```
 
 ### Boxplot

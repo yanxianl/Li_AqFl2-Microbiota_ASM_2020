@@ -1,6 +1,5 @@
-[![DOI](https://zenodo.org/badge/200007111.svg)](https://zenodo.org/badge/latestdoi/200007111)
-
 <!-- badges: start -->
+  [![DOI](https://zenodo.org/badge/200007111.svg)](https://zenodo.org/badge/latestdoi/200007111)
   [![Launch Rstudio Binder](http://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/yanxianl/Li_AqFl2-Microbiota_ASM_2020/master?urlpath=rstudio)
 <!-- badges: end -->
 
